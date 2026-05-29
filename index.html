@@ -1,0 +1,1965 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>LearnFlow AI — Personalized Learning Path Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --bg:#0a0a0f;--bg2:#111118;--bg3:#18181f;--bg4:#1e1e28;
+  --surf:#242430;--surf2:#2e2e3d;--surf3:#38384a;
+  --border:#ffffff0f;--border2:#ffffff18;--border3:#ffffff2a;
+  --text:#f0f0f8;--text2:#a8a8c0;--text3:#6a6a88;
+  --accent:#7c6dfa;--accent2:#a78bfa;--accent3:#c4b5fd;
+  --green:#22c55e;--amber:#f59e0b;--red:#ef4444;--cyan:#06b6d4;--pink:#ec4899;
+  --grad:linear-gradient(135deg,#7c6dfa,#06b6d4);
+  --grad2:linear-gradient(135deg,#a78bfa,#ec4899);
+  --radius:12px;--radius2:18px;--radius3:24px;
+  --shadow:0 4px 24px rgba(0,0,0,.4);--shadow2:0 8px 48px rgba(0,0,0,.6);
+  --font-head:'Syne',sans-serif;--font:'DM Sans',sans-serif;
+  --sidebar:240px;--transition:all .25s cubic-bezier(.4,0,.2,1);
+}
+[data-theme="light"]{
+  --bg:#f4f4f8;--bg2:#ebebf0;--bg3:#e2e2ea;--bg4:#d8d8e4;
+  --surf:#ffffff;--surf2:#f8f8fc;--surf3:#eeeeF5;
+  --border:#00000010;--border2:#0000001a;--border3:#00000025;
+  --text:#0f0f1a;--text2:#4a4a6a;--text3:#8a8aa0;
+  --shadow:0 4px 24px rgba(0,0,0,.08);--shadow2:0 8px 48px rgba(0,0,0,.14);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;overflow-x:hidden}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--surf3);border-radius:99px}
+button,a{cursor:pointer}
+a{text-decoration:none;color:inherit}
+
+/* ===== PAGES ===== */
+.page{display:none;min-height:100vh;animation:fadeIn .35s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shimmer{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+@keyframes streak{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:translateX(0)}}
+@keyframes countUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes glow{0%,100%{box-shadow:0 0 20px rgba(124,109,250,.3)}50%{box-shadow:0 0 40px rgba(124,109,250,.6)}}
+
+/* ===== UTILITY ===== */
+.flex{display:flex}.flex-col{flex-direction:column}.items-center{align-items:center}.justify-between{justify-content:space-between}.gap-2{gap:8px}.gap-3{gap:12px}.gap-4{gap:16px}.gap-6{gap:24px}.gap-8{gap:32px}
+.text-sm{font-size:13px}.text-xs{font-size:12px}.text-lg{font-size:18px}.text-xl{font-size:22px}.text-2xl{font-size:28px}.text-3xl{font-size:36px}.text-4xl{font-size:48px}.text-5xl{font-size:60px}
+.font-head{font-family:var(--font-head)}.font-bold{font-weight:700}.font-semibold{font-weight:600}.font-medium{font-weight:500}
+.text-muted{color:var(--text2)}.text-accent{color:var(--accent)}.text-green{color:var(--green)}.text-amber{color:var(--amber)}.text-red{color:var(--red)}.text-cyan{color:var(--cyan)}
+.w-full{width:100%}.h-full{height:100%}
+.rounded{border-radius:var(--radius)}.rounded2{border-radius:var(--radius2)}.rounded3{border-radius:var(--radius3)}.rounded-full{border-radius:999px}
+.border{border:1px solid var(--border)}.border2{border:1px solid var(--border2)}.border3{border:1px solid var(--border3)}
+.relative{position:relative}.absolute{position:absolute}.overflow-hidden{overflow:hidden}
+.grid{display:grid}.p-4{padding:16px}.p-6{padding:24px}.p-8{padding:32px}
+.mt-2{margin-top:8px}.mt-4{margin-top:16px}.mt-6{margin-top:24px}.mt-8{margin-top:32px}
+.mb-2{margin-bottom:8px}.mb-4{margin-bottom:16px}.mb-6{margin-bottom:24px}.mb-8{margin-bottom:32px}
+
+/* ===== BUTTONS ===== */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:var(--radius);font-weight:500;font-size:14px;transition:var(--transition);border:none;font-family:var(--font);white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#6b5ce8;transform:translateY(-1px);box-shadow:0 8px 24px rgba(124,109,250,.4)}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border3)}
+.btn-outline:hover{background:var(--surf2);border-color:var(--border3)}
+.btn-ghost{background:transparent;color:var(--text2);padding:8px 12px}
+.btn-ghost:hover{background:var(--surf2);color:var(--text)}
+.btn-grad{background:var(--grad);color:#fff;border:none}
+.btn-grad:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 8px 24px rgba(124,109,250,.4)}
+.btn-sm{padding:7px 14px;font-size:13px}
+.btn-lg{padding:14px 32px;font-size:16px}
+.btn-icon{width:38px;height:38px;padding:0;border-radius:var(--radius)}
+
+/* ===== CARDS ===== */
+.card{background:var(--surf);border:1px solid var(--border);border-radius:var(--radius2);padding:24px;transition:var(--transition)}
+.card:hover{border-color:var(--border2)}
+.card-sm{background:var(--surf);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.card-grad{background:linear-gradient(135deg,rgba(124,109,250,.15),rgba(6,182,212,.1));border:1px solid rgba(124,109,250,.2)}
+
+/* ===== INPUTS ===== */
+.input{width:100%;padding:10px 14px;background:var(--surf2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:14px;font-family:var(--font);transition:var(--transition);outline:none}
+.input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,109,250,.15)}
+.input::placeholder{color:var(--text3)}
+label.lbl{display:block;font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px}
+.form-group{margin-bottom:18px}
+
+/* ===== BADGE ===== */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:500}
+.badge-accent{background:rgba(124,109,250,.15);color:var(--accent2);border:1px solid rgba(124,109,250,.2)}
+.badge-green{background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.2)}
+.badge-amber{background:rgba(245,158,11,.12);color:var(--amber);border:1px solid rgba(245,158,11,.2)}
+.badge-red{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+.badge-cyan{background:rgba(6,182,212,.12);color:var(--cyan);border:1px solid rgba(6,182,212,.2)}
+
+/* ===== PROGRESS ===== */
+.progress-bar{height:6px;background:var(--surf3);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;border-radius:99px;background:var(--grad);transition:width .8s cubic-bezier(.4,0,.2,1)}
+
+/* ===== AVATAR ===== */
+.avatar{width:38px;height:38px;border-radius:99px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;color:#fff;flex-shrink:0}
+
+/* ===== SIDEBAR LAYOUT ===== */
+.app-layout{display:flex;min-height:100vh}
+.sidebar{width:var(--sidebar);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:50;transition:var(--transition);overflow-y:auto}
+.sidebar-header{padding:20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sidebar-logo{width:32px;height:32px;background:var(--grad);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff;font-family:var(--font-head)}
+.sidebar-nav{flex:1;padding:12px 8px}
+.nav-section{margin-bottom:24px}
+.nav-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);padding:4px 10px;margin-bottom:4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius);color:var(--text2);font-size:14px;font-weight:500;transition:var(--transition);cursor:pointer;margin-bottom:2px}
+.nav-item:hover{background:var(--surf2);color:var(--text)}
+.nav-item.active{background:rgba(124,109,250,.12);color:var(--accent2);border:1px solid rgba(124,109,250,.15)}
+.nav-icon{width:18px;text-align:center;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--accent);color:#fff;border-radius:99px;font-size:10px;padding:1px 7px;font-weight:600}
+.sidebar-footer{padding:16px;border-top:1px solid var(--border)}
+.main-content{margin-left:var(--sidebar);flex:1;min-height:100vh}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40;backdrop-filter:blur(12px)}
+.page-content{padding:28px}
+
+/* ===== LANDING ===== */
+.landing{background:var(--bg);min-height:100vh}
+.landing-nav{position:fixed;top:0;left:0;right:0;z-index:100;backdrop-filter:blur(20px);background:rgba(10,10,15,.85);border-bottom:1px solid var(--border);padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between}
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:100px 20px 60px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(124,109,250,.25) 0%,transparent 70%),radial-gradient(ellipse 60% 50% at 80% 50%,rgba(6,182,212,.1) 0%,transparent 60%)}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;background:rgba(124,109,250,.12);border:1px solid rgba(124,109,250,.25);border-radius:99px;font-size:13px;color:var(--accent2);margin-bottom:28px;animation:fadeIn .6s ease both}
+.hero h1{font-family:var(--font-head);font-size:clamp(40px,7vw,76px);font-weight:800;line-height:1.05;letter-spacing:-.03em;max-width:900px;animation:fadeIn .6s .1s ease both}
+.hero h1 span{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:clamp(16px,2vw,20px);color:var(--text2);max-width:560px;margin:24px auto 0;line-height:1.65;animation:fadeIn .6s .2s ease both}
+.hero-cta{display:flex;align-items:center;gap:12px;margin-top:36px;flex-wrap:wrap;justify-content:center;animation:fadeIn .6s .3s ease both}
+.hero-stats{display:flex;gap:40px;margin-top:60px;flex-wrap:wrap;justify-content:center;animation:fadeIn .6s .4s ease both}
+.stat-item{text-align:center}
+.stat-num{font-family:var(--font-head);font-size:32px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-label{font-size:13px;color:var(--text3);margin-top:2px}
+.floating-cards{position:absolute;pointer-events:none;width:100%;height:100%;top:0;left:0}
+.floating-card{position:absolute;background:var(--surf);border:1px solid var(--border2);border-radius:var(--radius2);padding:14px 18px;font-size:13px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow);backdrop-filter:blur(12px)}
+.section{padding:100px 40px;max-width:1200px;margin:0 auto}
+.section-tag{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;background:rgba(124,109,250,.1);border:1px solid rgba(124,109,250,.2);border-radius:99px;font-size:13px;color:var(--accent2);margin-bottom:16px}
+.section-title{font-family:var(--font-head);font-size:clamp(28px,4vw,44px);font-weight:800;letter-spacing:-.02em;line-height:1.15}
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-top:48px}
+.feature-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--radius2);padding:28px;transition:var(--transition)}
+.feature-card:hover{border-color:rgba(124,109,250,.3);transform:translateY(-3px);box-shadow:0 12px 40px rgba(124,109,250,.12)}
+.feature-icon{width:48px;height:48px;border-radius:14px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:18px}
+.testimonials-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;margin-top:48px}
+.testimonial-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--radius2);padding:28px}
+.stars{color:var(--amber);font-size:15px;margin-bottom:12px}
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-top:48px}
+.pricing-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--radius2);padding:32px;transition:var(--transition)}
+.pricing-card.featured{border-color:var(--accent);background:linear-gradient(135deg,rgba(124,109,250,.08),rgba(6,182,212,.05));animation:glow 3s ease-in-out infinite}
+.price-amount{font-family:var(--font-head);font-size:48px;font-weight:800;margin:16px 0 4px}
+.price-feature{display:flex;align-items:center;gap:8px;font-size:14px;padding:7px 0;border-bottom:1px solid var(--border)}
+.faq-item{border-bottom:1px solid var(--border);overflow:hidden}
+.faq-q{display:flex;align-items:center;justify-content:space-between;padding:20px 0;cursor:pointer;font-weight:500}
+.faq-a{font-size:14px;color:var(--text2);padding-bottom:20px;display:none;line-height:1.7}
+.faq-a.open{display:block}
+.how-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:32px;margin-top:48px;position:relative}
+.how-step{text-align:center}
+.step-num{width:52px;height:52px;border-radius:99px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:800;font-size:20px;color:#fff;margin:0 auto 16px}
+.landing-footer{background:var(--bg2);border-top:1px solid var(--border);padding:60px 40px 30px}
+.footer-grid{display:grid;grid-template-columns:2fr repeat(3,1fr);gap:40px;max-width:1200px;margin:0 auto}
+.footer-link{display:block;font-size:14px;color:var(--text2);padding:5px 0;transition:var(--transition)}
+.footer-link:hover{color:var(--text)}
+.footer-copy{text-align:center;color:var(--text3);font-size:13px;border-top:1px solid var(--border);padding-top:28px;margin-top:40px;max-width:1200px;margin-left:auto;margin-right:auto}
+
+/* ===== AUTH ===== */
+.auth-layout{min-height:100vh;display:grid;grid-template-columns:1fr 1fr}
+.auth-left{background:var(--bg2);display:flex;flex-direction:column;padding:60px;position:relative;overflow:hidden}
+.auth-left::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 50%,rgba(124,109,250,.2) 0%,transparent 70%)}
+.auth-right{display:flex;align-items:center;justify-content:center;padding:40px}
+.auth-box{width:100%;max-width:420px}
+.social-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:11px;background:var(--surf2);border:1px solid var(--border2);border-radius:var(--radius);font-size:14px;font-weight:500;cursor:pointer;transition:var(--transition);color:var(--text)}
+.social-btn:hover{background:var(--surf3);border-color:var(--border3)}
+.divider{display:flex;align-items:center;gap:12px;color:var(--text3);font-size:13px;margin:20px 0}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border2)}
+.pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;transition:var(--transition)}
+.pw-toggle:hover{color:var(--text)}
+
+/* ===== ONBOARDING ===== */
+.onboarding-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;position:relative}
+.onboarding-wrap::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 30%,rgba(124,109,250,.2) 0%,transparent 70%)}
+.ob-card{background:var(--surf);border:1px solid var(--border2);border-radius:var(--radius3);padding:48px;max-width:640px;width:100%;position:relative;z-index:1}
+.ob-progress{display:flex;gap:6px;margin-bottom:36px}
+.ob-step{flex:1;height:4px;border-radius:99px;background:var(--surf3);transition:var(--transition)}
+.ob-step.done{background:var(--accent)}
+.ob-step.active{background:var(--accent2)}
+.option-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:16px}
+.option-btn{padding:12px;border-radius:var(--radius);border:1.5px solid var(--border2);background:var(--surf2);cursor:pointer;font-size:14px;font-weight:500;color:var(--text2);transition:var(--transition);text-align:center}
+.option-btn:hover,.option-btn.sel{border-color:var(--accent);background:rgba(124,109,250,.1);color:var(--accent2)}
+.ai-loading{text-align:center;padding:60px 0}
+.ai-orb{width:80px;height:80px;border-radius:99px;background:var(--grad);margin:0 auto 24px;animation:spin 2s linear infinite,glow 2s ease-in-out infinite;position:relative}
+.ai-orb::after{content:'🧠';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:28px;animation:none}
+
+/* ===== DASHBOARD ===== */
+.welcome-banner{background:linear-gradient(135deg,rgba(124,109,250,.18) 0%,rgba(6,182,212,.1) 100%);border:1px solid rgba(124,109,250,.2);border-radius:var(--radius2);padding:28px 32px;display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:28px}
+.streak-card{background:linear-gradient(135deg,#f59e0b22,#f59e0b08);border:1px solid rgba(245,158,11,.2);border-radius:var(--radius2);padding:20px;text-align:center}
+.xp-card{background:linear-gradient(135deg,rgba(124,109,250,.15),rgba(124,109,250,.05));border:1px solid rgba(124,109,250,.2);border-radius:var(--radius2);padding:20px}
+.mini-chart-wrap{position:relative;height:200px}
+.roadmap-node{display:flex;align-items:flex-start;gap:16px;padding:16px 0;position:relative}
+.roadmap-node::before{content:'';position:absolute;left:17px;top:50px;bottom:-20px;width:2px;background:var(--border2)}
+.roadmap-node:last-child::before{display:none}
+.node-dot{width:36px;height:36px;border-radius:99px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;border:2px solid var(--border2)}
+.node-dot.done{background:var(--green);border-color:var(--green);color:#fff}
+.node-dot.active{background:var(--accent);border-color:var(--accent);color:#fff;animation:glow 2s ease-in-out infinite}
+.node-dot.todo{background:var(--surf2);border-color:var(--border3);color:var(--text3)}
+.rec-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--radius2);padding:20px;display:flex;gap:16px;align-items:flex-start;transition:var(--transition)}
+.rec-card:hover{border-color:var(--border2);transform:translateX(3px)}
+.rec-thumb{width:56px;height:56px;border-radius:var(--radius);background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.widget-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.widget{background:var(--surf);border:1px solid var(--border);border-radius:var(--radius2);padding:20px}
+.widget-val{font-family:var(--font-head);font-size:32px;font-weight:700;animation:countUp .6s ease both}
+.widget-label{font-size:13px;color:var(--text2);margin-top:4px}
+.widget-delta{font-size:12px;color:var(--green);display:flex;align-items:center;gap:3px}
+
+/* ===== LEARNING PATH ===== */
+.path-timeline{position:relative;padding-left:32px}
+.path-timeline::before{content:'';position:absolute;left:14px;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--accent),var(--cyan),var(--border2))}
+.path-module{margin-bottom:28px;position:relative}
+.path-module::before{content:'';position:absolute;left:-26px;top:24px;width:14px;height:14px;border-radius:99px;background:var(--accent);border:2px solid var(--bg);box-shadow:0 0 0 3px rgba(124,109,250,.3)}
+.path-module.done::before{background:var(--green);box-shadow:0 0 0 3px rgba(34,197,94,.3)}
+.path-module.locked::before{background:var(--surf3)}
+.module-header{display:flex;align-items:center;justify-content:space-between;gap:16px;cursor:pointer;padding:18px;background:var(--surf);border:1px solid var(--border);border-radius:var(--radius2);transition:var(--transition)}
+.module-header:hover{border-color:var(--border2)}
+.module-body{display:none;background:var(--surf2);border:1px solid var(--border);border-left:none;border-right:none;border-bottom:1px solid var(--border);border-radius:0 0 var(--radius2) var(--radius2);padding:16px}
+.module-body.open{display:block}
+.resource-item{display:flex;align-items:center;gap:12px;padding:12px;border-radius:var(--radius);transition:var(--transition)}
+.resource-item:hover{background:var(--surf3)}
+.diff-badge{padding:3px 10px;border-radius:99px;font-size:11px;font-weight:600}
+.diff-beginner{background:rgba(34,197,94,.12);color:var(--green)}
+.diff-intermediate{background:rgba(245,158,11,.12);color:var(--amber)}
+.diff-advanced{background:rgba(239,68,68,.12);color:var(--red)}
+
+/* ===== CHAT ===== */
+.chat-layout{display:grid;grid-template-columns:280px 1fr;height:calc(100vh - 60px);overflow:hidden}
+.chat-sidebar{background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;padding:16px}
+.chat-main{display:flex;flex-direction:column;background:var(--bg)}
+.chat-topbar{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;background:var(--bg2)}
+.messages{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:20px}
+.msg{display:flex;gap:12px;max-width:680px}
+.msg.user{flex-direction:row-reverse;margin-left:auto}
+.msg-bubble{padding:14px 18px;border-radius:var(--radius2);font-size:14px;line-height:1.7}
+.msg.ai .msg-bubble{background:var(--surf);border:1px solid var(--border)}
+.msg.user .msg-bubble{background:var(--accent);color:#fff}
+.ai-avatar{width:36px;height:36px;border-radius:99px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.typing{display:flex;gap:5px;align-items:center;padding:14px 18px}
+.typing span{width:7px;height:7px;border-radius:99px;background:var(--text3);animation:pulse 1.2s ease-in-out infinite}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+.chat-input-area{padding:20px 24px;border-top:1px solid var(--border);background:var(--bg2)}
+.chat-input-wrap{display:flex;align-items:flex-end;gap:10px;background:var(--surf);border:1px solid var(--border2);border-radius:var(--radius2);padding:12px 16px}
+.chat-input{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:14px;font-family:var(--font);resize:none;max-height:120px;line-height:1.5}
+.chat-input::placeholder{color:var(--text3)}
+.convo-item{padding:10px;border-radius:var(--radius);cursor:pointer;transition:var(--transition);margin-bottom:4px}
+.convo-item:hover{background:var(--surf2)}
+.convo-item.active{background:rgba(124,109,250,.1);border:1px solid rgba(124,109,250,.15)}
+.prompt-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.prompt-chip{padding:7px 14px;border-radius:99px;border:1px solid var(--border2);font-size:13px;color:var(--text2);cursor:pointer;transition:var(--transition)}
+.prompt-chip:hover{border-color:var(--accent);color:var(--accent2);background:rgba(124,109,250,.08)}
+
+/* ===== ANALYTICS ===== */
+.analytics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.chart-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--radius2);padding:24px}
+.chart-title{font-weight:600;margin-bottom:4px}
+.chart-sub{font-size:13px;color:var(--text2);margin-bottom:20px}
+.ai-insight{background:linear-gradient(135deg,rgba(124,109,250,.1),rgba(6,182,212,.06));border:1px solid rgba(124,109,250,.2);border-radius:var(--radius2);padding:20px;display:flex;gap:14px;align-items:flex-start;margin-top:20px}
+.heatmap{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;margin-top:16px}
+.heat-cell{height:20px;border-radius:3px;background:var(--surf3);transition:var(--transition)}
+.heat-cell:hover{transform:scale(1.2)}
+
+/* ===== ASSESSMENTS ===== */
+.assessment-hero{background:linear-gradient(135deg,rgba(124,109,250,.15),rgba(6,182,212,.1));border:1px solid rgba(124,109,250,.2);border-radius:var(--radius2);padding:32px;margin-bottom:24px;text-align:center}
+.quiz-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--radius2);padding:32px;max-width:640px;margin:0 auto}
+.quiz-option{padding:14px 18px;border-radius:var(--radius);border:1.5px solid var(--border2);cursor:pointer;font-size:14px;transition:var(--transition);margin-bottom:10px;display:flex;align-items:center;gap:12px}
+.quiz-option:hover{border-color:var(--accent);background:rgba(124,109,250,.06)}
+.quiz-option.selected{border-color:var(--accent);background:rgba(124,109,250,.1);color:var(--accent2)}
+.quiz-option.correct{border-color:var(--green);background:rgba(34,197,94,.08);color:var(--green)}
+.quiz-option.wrong{border-color:var(--red);background:rgba(239,68,68,.08);color:var(--red)}
+.timer-wrap{display:flex;align-items:center;gap:10px;font-family:var(--font-head);font-size:20px;font-weight:700}
+.timer-circle{width:48px;height:48px;border-radius:99px;border:3px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700}
+.leaderboard-item{display:flex;align-items:center;gap:14px;padding:14px;border-radius:var(--radius2);border-bottom:1px solid var(--border);transition:var(--transition)}
+.leaderboard-item:hover{background:var(--surf2)}
+.rank-badge{width:32px;height:32px;border-radius:99px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+.badge-3{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.achievement{padding:8px 14px;border-radius:var(--radius);border:1px solid var(--border2);display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;transition:var(--transition)}
+.achievement.unlocked{border-color:var(--amber);background:rgba(245,158,11,.08);color:var(--amber)}
+
+/* ===== COMMUNITY ===== */
+.feed{display:grid;grid-template-columns:1fr 300px;gap:24px}
+.post-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--radius2);padding:20px;margin-bottom:16px;transition:var(--transition)}
+.post-card:hover{border-color:var(--border2)}
+.post-actions{display:flex;gap:16px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.post-action-btn{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text3);cursor:pointer;transition:var(--transition)}
+.post-action-btn:hover{color:var(--accent2)}
+.mentor-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--radius2);padding:18px;display:flex;gap:14px;align-items:flex-start;margin-bottom:12px;transition:var(--transition)}
+.mentor-card:hover{border-color:var(--border2);transform:translateX(3px)}
+
+/* ===== PROFILE ===== */
+.profile-header{background:linear-gradient(135deg,rgba(124,109,250,.15),rgba(6,182,212,.08));border:1px solid rgba(124,109,250,.2);border-radius:var(--radius2);padding:32px;margin-bottom:24px;display:flex;gap:28px;align-items:flex-start}
+.profile-avatar{width:80px;height:80px;border-radius:99px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:32px;color:#fff;font-weight:700;flex-shrink:0;border:3px solid var(--accent)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:24px}
+.tab{padding:10px 18px;font-size:14px;font-weight:500;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;transition:var(--transition);margin-bottom:-1px}
+.tab.active{color:var(--accent2);border-bottom-color:var(--accent2)}
+.tab:hover:not(.active){color:var(--text)}
+
+/* ===== PRICING ===== */
+.pricing-hero{text-align:center;padding:80px 20px 40px}
+.toggle-wrap{display:flex;align-items:center;gap:12px;justify-content:center;margin:24px 0 48px}
+.toggle-track{width:44px;height:24px;border-radius:99px;background:var(--surf3);position:relative;cursor:pointer;transition:var(--transition)}
+.toggle-track.on{background:var(--accent)}
+.toggle-knob{width:18px;height:18px;border-radius:99px;background:#fff;position:absolute;top:3px;left:3px;transition:var(--transition)}
+.toggle-track.on .toggle-knob{left:23px}
+.plan-feature{display:flex;align-items:center;gap:8px;font-size:14px;padding:8px 0;border-bottom:1px solid var(--border)}
+
+/* ===== NOTIFICATIONS ===== */
+.notif-item{display:flex;align-items:flex-start;gap:14px;padding:16px;border-radius:var(--radius2);border-bottom:1px solid var(--border);cursor:pointer;transition:var(--transition)}
+.notif-item:hover{background:var(--surf2)}
+.notif-item.unread{background:rgba(124,109,250,.05)}
+.notif-dot{width:8px;height:8px;border-radius:99px;background:var(--accent);flex-shrink:0;margin-top:7px}
+.notif-icon{width:40px;height:40px;border-radius:99px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+
+/* ===== ADMIN ===== */
+.admin-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.admin-chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px}
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{text-align:left;padding:12px 16px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);border-bottom:1px solid var(--border)}
+.data-table td{padding:14px 16px;font-size:14px;border-bottom:1px solid var(--border)}
+.data-table tr:hover td{background:var(--surf2)}
+
+/* ===== ENTERPRISE ===== */
+.team-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--radius2);padding:24px;transition:var(--transition)}
+.team-card:hover{border-color:rgba(124,109,250,.3);transform:translateY(-2px)}
+.org-chart{text-align:center;padding:20px;background:var(--surf2);border-radius:var(--radius2);border:1px solid var(--border);margin-bottom:24px}
+
+/* ===== 404 ===== */
+.page-404{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;position:relative;overflow:hidden}
+.page-404::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 60% at 50% 50%,rgba(124,109,250,.15) 0%,transparent 70%)}
+.big-404{font-family:var(--font-head);font-size:clamp(120px,20vw,220px);font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;opacity:.6;animation:float 3s ease-in-out infinite}
+
+/* ===== MOBILE TOPBAR TOGGLE ===== */
+.menu-toggle{display:none;background:none;border:none;color:var(--text);font-size:22px;padding:4px}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:45}
+.sidebar-close{display:none}
+
+/* ===== NOTIFICATION TOAST ===== */
+#toast{position:fixed;bottom:24px;right:24px;z-index:1000;display:flex;flex-direction:column;gap:10px}
+.toast-item{background:var(--surf);border:1px solid var(--border2);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow2);font-size:14px;animation:slideIn .3s ease;min-width:280px;max-width:360px}
+.toast-icon{font-size:20px;flex-shrink:0}
+
+/* ===== SKELETON ===== */
+.skeleton{background:var(--surf2);border-radius:var(--radius);overflow:hidden;position:relative}
+.skeleton::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.04),transparent);animation:shimmer 1.5s infinite}
+
+/* ===== SEARCH ===== */
+.search-wrap{position:relative;max-width:300px}
+.search-input{padding:8px 12px 8px 36px;background:var(--surf2);border:1px solid var(--border);border-radius:var(--radius);font-size:13px;color:var(--text);outline:none;width:100%;transition:var(--transition)}
+.search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,109,250,.12)}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:15px}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:1024px){
+  .analytics-grid,.admin-grid{grid-template-columns:repeat(2,1fr)}
+  .admin-chart-grid{grid-template-columns:1fr}
+  .feed{grid-template-columns:1fr}
+  .auth-layout{grid-template-columns:1fr}
+  .auth-left{display:none}
+  .footer-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .sidebar-overlay.show{display:block}
+  .main-content{margin-left:0}
+  .menu-toggle,.sidebar-close{display:flex}
+  .page-content{padding:16px}
+  .topbar{padding:0 16px}
+  .hero{padding:80px 16px 40px}
+  .section{padding:60px 20px}
+  .landing-nav{padding:0 20px}
+  .analytics-grid,.admin-grid{grid-template-columns:1fr 1fr}
+  .chat-layout{grid-template-columns:1fr}
+  .chat-sidebar{display:none}
+  .welcome-banner{flex-direction:column;text-align:center}
+  .profile-header{flex-direction:column;align-items:center;text-align:center}
+  .footer-grid{grid-template-columns:1fr}
+}
+@media(max-width:480px){
+  .analytics-grid,.admin-grid{grid-template-columns:1fr}
+  .pricing-grid,.features-grid,.how-steps{grid-template-columns:1fr}
+  .hero-stats{gap:24px}
+  .widget-grid{grid-template-columns:1fr 1fr}
+}
+
+/* ===== THEME TOGGLE ===== */
+.theme-btn{width:38px;height:38px;border-radius:99px;background:var(--surf2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;transition:var(--transition)}
+.theme-btn:hover{background:var(--surf3)}
+
+/* ===== CODE BLOCK ===== */
+.code-block{background:#0f1117;border:1px solid var(--border2);border-radius:var(--radius);padding:16px;font-family:monospace;font-size:13px;line-height:1.6;color:#c9d1d9;overflow-x:auto;margin:8px 0}
+.code-block .kw{color:#ff79c6}.code-block .str{color:#f1fa8c}.code-block .fn{color:#50fa7b}.code-block .cm{color:#6272a4}
+
+/* ===== MARKDOWN-ISH ===== */
+.md h1,.md h2,.md h3{font-family:var(--font-head);font-weight:700;margin:12px 0 6px}
+.md h2{font-size:18px}.md h3{font-size:15px}
+.md p{font-size:14px;line-height:1.75;color:var(--text2);margin-bottom:10px}
+.md ul{padding-left:20px;font-size:14px;color:var(--text2);line-height:1.8}
+.md code{background:var(--surf3);padding:2px 6px;border-radius:4px;font-family:monospace;font-size:12px;color:var(--accent2)}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+
+<!-- ==================== LANDING PAGE ==================== -->
+<div class="page active" id="page-landing">
+<nav class="landing-nav">
+  <div class="flex items-center gap-3">
+    <div style="width:32px;height:32px;background:var(--grad);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-family:var(--font-head)">L</div>
+    <span style="font-family:var(--font-head);font-weight:700;font-size:18px">LearnFlow <span style="color:var(--accent2)">AI</span></span>
+  </div>
+  <div class="flex items-center gap-4" style="font-size:14px">
+    <a href="#" class="text-muted" style="transition:var(--transition)" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text2)'">Features</a>
+    <a href="#" class="text-muted" style="transition:var(--transition)" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text2)'">Pricing</a>
+    <a href="#" class="text-muted" style="transition:var(--transition)" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text2)'">Blog</a>
+    <button class="btn btn-ghost btn-sm" onclick="navigate('login')">Login</button>
+    <button class="btn btn-grad btn-sm" onclick="navigate('signup')">Get Started Free</button>
+    <button class="theme-btn" onclick="toggleTheme()" title="Toggle theme">☀️</button>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="floating-cards">
+    <div class="floating-card" style="top:18%;left:6%;animation:float 3s ease-in-out infinite">🎯<span><strong>Goal Tracking</strong><br><small class="text-muted">98% completion rate</small></span></div>
+    <div class="floating-card" style="top:25%;right:7%;animation:float 4s .5s ease-in-out infinite">🤖<span><strong>AI Mentor</strong><br><small class="text-muted">24/7 available</small></span></div>
+    <div class="floating-card" style="bottom:25%;left:5%;animation:float 3.5s 1s ease-in-out infinite">📈<span><strong>Skill Growth</strong><br><small class="text-muted">+340% faster</small></span></div>
+    <div class="floating-card" style="bottom:22%;right:6%;animation:float 4.5s .3s ease-in-out infinite">⚡<span><strong>XP Earned</strong><br><small class="text-muted">12,400 this week</small></span></div>
+  </div>
+  <div class="hero-tag">✨ AI-Powered Personalized Learning</div>
+  <h1>Learn Smarter with<br><span>AI That Knows You</span></h1>
+  <p class="hero-sub">LearnFlow AI generates personalized learning roadmaps using advanced AI, adapting to your goals, pace, and style in real-time.</p>
+  <div class="hero-cta">
+    <button class="btn btn-grad btn-lg" onclick="navigate('signup')">🚀 Start Learning Free</button>
+    <button class="btn btn-outline btn-lg" onclick="navigate('dashboard')">View Dashboard →</button>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-item"><div class="stat-num">500K+</div><div class="stat-label">Active Learners</div></div>
+    <div class="stat-item"><div class="stat-num">2.4M</div><div class="stat-label">Paths Generated</div></div>
+    <div class="stat-item"><div class="stat-num">98%</div><div class="stat-label">Satisfaction Rate</div></div>
+    <div class="stat-item"><div class="stat-num">340%</div><div class="stat-label">Faster Learning</div></div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="section" style="border-top:1px solid var(--border)">
+  <div style="text-align:center">
+    <div class="section-tag">✦ Features</div>
+    <div class="section-title">Everything you need to <span style="color:var(--accent2)">master</span> any skill</div>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card"><div class="feature-icon">🧠</div><h3 style="font-family:var(--font-head);font-weight:700;margin-bottom:8px">AI Learning Paths</h3><p class="text-sm text-muted">Personalized roadmaps generated by AI based on your goals, experience, and learning style.</p></div>
+    <div class="feature-card"><div class="feature-icon">💬</div><h3 style="font-family:var(--font-head);font-weight:700;margin-bottom:8px">AI Mentor Chat</h3><p class="text-sm text-muted">Chat with your AI mentor 24/7. Get explanations, code reviews, and guidance instantly.</p></div>
+    <div class="feature-card"><div class="feature-icon">📊</div><h3 style="font-family:var(--font-head);font-weight:700;margin-bottom:8px">Skill Analytics</h3><p class="text-sm text-muted">Deep insights into your learning patterns, skill gaps, and productivity trends.</p></div>
+    <div class="feature-card"><div class="feature-icon">🏆</div><h3 style="font-family:var(--font-head);font-weight:700;margin-bottom:8px">Gamification</h3><p class="text-sm text-muted">Earn XP, unlock achievements, maintain streaks, and climb the leaderboard.</p></div>
+    <div class="feature-card"><div class="feature-icon">👥</div><h3 style="font-family:var(--font-head);font-weight:700;margin-bottom:8px">Community</h3><p class="text-sm text-muted">Learn with peers, join study groups, and get feedback from expert mentors.</p></div>
+    <div class="feature-card"><div class="feature-icon">🎯</div><h3 style="font-family:var(--font-head);font-weight:700;margin-bottom:8px">Smart Assessments</h3><p class="text-sm text-muted">Adaptive quizzes and coding challenges that adjust to your current level.</p></div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section class="section" style="border-top:1px solid var(--border);background:var(--bg2)">
+  <div style="text-align:center">
+    <div class="section-tag">⚙ How It Works</div>
+    <div class="section-title">From signup to <span style="color:var(--cyan)">mastery</span> in 4 steps</div>
+  </div>
+  <div class="how-steps">
+    <div class="how-step"><div class="step-num">1</div><h4 style="font-family:var(--font-head);font-weight:700;margin-bottom:8px">Tell us your goals</h4><p class="text-sm text-muted">Complete a quick onboarding to share your experience, interests, and career goals.</p></div>
+    <div class="how-step"><div class="step-num">2</div><h4 style="font-family:var(--font-head);font-weight:700;margin-bottom:8px">AI builds your path</h4><p class="text-sm text-muted">Our AI generates a personalized roadmap with curated resources just for you.</p></div>
+    <div class="how-step"><div class="step-num">3</div><h4 style="font-family:var(--font-head);font-weight:700;margin-bottom:8px">Learn & practice</h4><p class="text-sm text-muted">Follow your roadmap, chat with your AI mentor, and complete assessments.</p></div>
+    <div class="how-step"><div class="step-num">4</div><h4 style="font-family:var(--font-head);font-weight:700;margin-bottom:8px">Track & grow</h4><p class="text-sm text-muted">Monitor your progress, earn XP, and adapt your path as you grow.</p></div>
+  </div>
+</section>
+
+<!-- Testimonials -->
+<section class="section" style="border-top:1px solid var(--border)">
+  <div style="text-align:center">
+    <div class="section-tag">💬 Testimonials</div>
+    <div class="section-title">Loved by <span style="color:var(--pink)">learners</span> worldwide</div>
+  </div>
+  <div class="testimonials-grid">
+    <div class="testimonial-card"><div class="stars">★★★★★</div><p class="text-sm text-muted" style="margin-bottom:16px">"LearnFlow AI completely transformed how I learn. The personalized roadmap got me from zero to landing a job at a FAANG company in 8 months!"</p><div class="flex items-center gap-3"><div class="avatar" style="background:var(--grad2)">SK</div><div><div style="font-weight:600;font-size:14px">Sarah Kim</div><div class="text-xs text-muted">Software Engineer @ Google</div></div></div></div>
+    <div class="testimonial-card"><div class="stars">★★★★★</div><p class="text-sm text-muted" style="margin-bottom:16px">"The AI mentor is incredible. It's like having a senior dev available 24/7 to answer my questions and review my code. Worth every penny."</p><div class="flex items-center gap-3"><div class="avatar" style="background:linear-gradient(135deg,#06b6d4,#22c55e)">MR</div><div><div style="font-weight:600;font-size:14px">Marcus Rodriguez</div><div class="text-xs text-muted">Full-Stack Developer</div></div></div></div>
+    <div class="testimonial-card"><div class="stars">★★★★★</div><p class="text-sm text-muted" style="margin-bottom:16px">"I've tried every learning platform out there. LearnFlow AI is on another level. The analytics help me understand exactly where to focus."</p><div class="flex items-center gap-3"><div class="avatar" style="background:linear-gradient(135deg,#ec4899,#f59e0b)">AP</div><div><div style="font-weight:600;font-size:14px">Aisha Patel</div><div class="text-xs text-muted">ML Engineer @ OpenAI</div></div></div></div>
+  </div>
+</section>
+
+<!-- Pricing Preview -->
+<section class="section" style="border-top:1px solid var(--border);background:var(--bg2)">
+  <div style="text-align:center;margin-bottom:48px">
+    <div class="section-tag">💎 Pricing</div>
+    <div class="section-title">Simple, <span style="color:var(--accent2)">transparent</span> pricing</div>
+  </div>
+  <div class="pricing-grid">
+    <div class="pricing-card"><div class="badge badge-accent mb-4">Starter</div><div class="price-amount">$0</div><div class="text-sm text-muted mb-4">/month · forever free</div><button class="btn btn-outline w-full mb-6" onclick="navigate('signup')">Get Started</button><div class="price-feature">✓ 1 Learning Path</div><div class="price-feature">✓ AI Chat (10/day)</div><div class="price-feature">✓ Basic Analytics</div></div>
+    <div class="pricing-card featured"><div class="badge badge-accent mb-4" style="background:var(--accent);color:#fff">Pro · Most Popular</div><div class="price-amount" style="background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">$19</div><div class="text-sm text-muted mb-4">/month</div><button class="btn btn-grad w-full mb-6" onclick="navigate('signup')">Start Free Trial</button><div class="price-feature">✓ Unlimited Paths</div><div class="price-feature">✓ Unlimited AI Chat</div><div class="price-feature">✓ Advanced Analytics</div><div class="price-feature">✓ Priority Support</div></div>
+    <div class="pricing-card"><div class="badge badge-cyan mb-4">Enterprise</div><div class="price-amount">Custom</div><div class="text-sm text-muted mb-4">for teams & orgs</div><button class="btn btn-outline w-full mb-6" onclick="navigate('enterprise')">Contact Sales</button><div class="price-feature">✓ Everything in Pro</div><div class="price-feature">✓ Team Dashboards</div><div class="price-feature">✓ SSO & Security</div><div class="price-feature">✓ Dedicated CSM</div></div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section" style="border-top:1px solid var(--border);max-width:720px">
+  <div style="text-align:center;margin-bottom:40px">
+    <div class="section-tag">❓ FAQ</div>
+    <div class="section-title">Frequently asked <span style="color:var(--accent2)">questions</span></div>
+  </div>
+  <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><span>How does the AI personalize my learning path?</span><span>+</span></div><div class="faq-a">Our AI analyzes your goals, experience level, learning style, and available time to create a custom roadmap. It continuously adapts based on your progress and feedback.</div></div>
+  <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><span>Can I switch my learning path after starting?</span><span>+</span></div><div class="faq-a">Absolutely! You can update your goals and the AI will regenerate your path while preserving your existing progress. You can also pause and resume anytime.</div></div>
+  <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><span>What subjects does LearnFlow AI cover?</span><span>+</span></div><div class="faq-a">We cover software development, data science, AI/ML, design, product management, marketing, finance, and more — over 50 career tracks with thousands of curated resources.</div></div>
+  <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><span>Is there a free trial for the Pro plan?</span><span>+</span></div><div class="faq-a">Yes! You get a 14-day free trial of Pro with no credit card required. After the trial, you can choose to stay on Free or upgrade to Pro.</div></div>
+</section>
+
+<!-- Footer -->
+<footer class="landing-footer">
+  <div class="footer-grid">
+    <div>
+      <div class="flex items-center gap-3 mb-4">
+        <div style="width:32px;height:32px;background:var(--grad);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-family:var(--font-head)">L</div>
+        <span style="font-family:var(--font-head);font-weight:700;font-size:18px">LearnFlow AI</span>
+      </div>
+      <p class="text-sm text-muted" style="max-width:260px;line-height:1.7">The AI-powered learning platform that helps you master any skill faster than ever before.</p>
+    </div>
+    <div><div style="font-weight:600;margin-bottom:12px;font-size:14px">Product</div><a class="footer-link" href="#">Features</a><a class="footer-link" href="#">Pricing</a><a class="footer-link" href="#">Changelog</a></div>
+    <div><div style="font-weight:600;margin-bottom:12px;font-size:14px">Company</div><a class="footer-link" href="#">About</a><a class="footer-link" href="#">Blog</a><a class="footer-link" href="#">Careers</a></div>
+    <div><div style="font-weight:600;margin-bottom:12px;font-size:14px">Legal</div><a class="footer-link" href="#">Privacy</a><a class="footer-link" href="#">Terms</a><a class="footer-link" href="#">Security</a></div>
+  </div>
+  <div class="footer-copy">© 2025 LearnFlow AI · All rights reserved · Made with ❤️ for learners everywhere</div>
+</footer>
+</div>
+
+<!-- ==================== LOGIN ==================== -->
+<div class="page" id="page-login">
+<div class="auth-layout">
+  <div class="auth-left">
+    <div class="flex items-center gap-3 mb-auto">
+      <div style="width:32px;height:32px;background:var(--grad);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-family:var(--font-head)">L</div>
+      <span style="font-family:var(--font-head);font-weight:700;font-size:18px">LearnFlow AI</span>
+    </div>
+    <div style="position:relative;z-index:1;margin:auto 0">
+      <div class="section-tag mb-4">✨ Welcome back</div>
+      <h2 style="font-family:var(--font-head);font-size:36px;font-weight:800;line-height:1.15;margin-bottom:16px">Continue your<br><span style="background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">learning journey</span></h2>
+      <p class="text-muted" style="font-size:15px;max-width:340px;line-height:1.7">Join 500K+ learners who are mastering new skills with AI-powered personalized paths.</p>
+      <div class="mt-8">
+        <div class="flex items-center gap-3 mb-4"><div class="avatar" style="width:44px;height:44px">SK</div><div><div style="font-weight:600">Sarah Kim</div><div class="text-xs text-muted">Landed a job at Google after 8 months</div></div></div>
+        <div class="flex items-center gap-3"><div class="avatar" style="width:44px;height:44px;background:var(--grad2)">MR</div><div><div style="font-weight:600">Marcus R.</div><div class="text-xs text-muted">Built 3 full-stack projects in 4 months</div></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="auth-right">
+    <div class="auth-box">
+      <h2 style="font-family:var(--font-head);font-weight:800;font-size:28px;margin-bottom:6px">Welcome back 👋</h2>
+      <p class="text-muted text-sm mb-6">Sign in to continue your learning</p>
+      <button class="social-btn mb-3">🔵 Continue with Google</button>
+      <button class="social-btn mb-3">⬛ Continue with GitHub</button>
+      <div class="divider">or</div>
+      <div class="form-group"><label class="lbl">Email</label><input class="input" type="email" placeholder="you@example.com"/></div>
+      <div class="form-group"><label class="lbl">Password</label><div class="relative"><input class="input" type="password" id="pw-login" placeholder="••••••••"/><button class="pw-toggle" onclick="togglePw('pw-login',this)">👁️</button></div></div>
+      <div class="flex justify-between items-center mb-6"><label class="flex items-center gap-2 text-sm"><input type="checkbox"/> Remember me</label><a href="#" class="text-sm text-accent" onclick="navigate('forgot')">Forgot password?</a></div>
+      <button class="btn btn-grad w-full btn-lg" onclick="navigate('dashboard');showToast('success','Logged in!','Welcome back 👋')">Sign In</button>
+      <p class="text-center text-sm text-muted mt-6">Don't have an account? <a href="#" class="text-accent" onclick="navigate('signup')">Sign up free</a></p>
+      <button class="btn btn-ghost btn-sm mt-4" onclick="navigate('landing')" style="width:100%">← Back to home</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== SIGNUP ==================== -->
+<div class="page" id="page-signup">
+<div class="auth-layout">
+  <div class="auth-left">
+    <div class="flex items-center gap-3 mb-auto">
+      <div style="width:32px;height:32px;background:var(--grad);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-family:var(--font-head)">L</div>
+      <span style="font-family:var(--font-head);font-weight:700;font-size:18px">LearnFlow AI</span>
+    </div>
+    <div style="position:relative;z-index:1;margin:auto 0">
+      <div class="section-tag mb-4">🚀 Join 500K+ learners</div>
+      <h2 style="font-family:var(--font-head);font-size:36px;font-weight:800;line-height:1.15;margin-bottom:16px">Start your AI-powered<br><span style="background:var(--grad2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">learning journey</span></h2>
+      <div class="mt-8 flex flex-col gap-4">
+        <div class="flex items-center gap-3"><span style="font-size:20px">🎯</span><span class="text-sm text-muted">Personalized roadmap generated in seconds</span></div>
+        <div class="flex items-center gap-3"><span style="font-size:20px">🤖</span><span class="text-sm text-muted">AI mentor available 24/7</span></div>
+        <div class="flex items-center gap-3"><span style="font-size:20px">🏆</span><span class="text-sm text-muted">Gamified learning keeps you motivated</span></div>
+        <div class="flex items-center gap-3"><span style="font-size:20px">📊</span><span class="text-sm text-muted">Deep analytics to track progress</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="auth-right">
+    <div class="auth-box">
+      <h2 style="font-family:var(--font-head);font-weight:800;font-size:28px;margin-bottom:6px">Create account ✨</h2>
+      <p class="text-muted text-sm mb-6">Start learning smarter today</p>
+      <button class="social-btn mb-3">🔵 Sign up with Google</button>
+      <button class="social-btn">⬛ Sign up with GitHub</button>
+      <div class="divider">or</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">
+        <div class="form-group" style="margin:0"><label class="lbl">First name</label><input class="input" placeholder="Alex"/></div>
+        <div class="form-group" style="margin:0"><label class="lbl">Last name</label><input class="input" placeholder="Chen"/></div>
+      </div>
+      <div class="form-group"><label class="lbl">Email</label><input class="input" type="email" placeholder="you@example.com"/></div>
+      <div class="form-group"><label class="lbl">Password</label><div class="relative"><input class="input" type="password" id="pw-signup" placeholder="Min. 8 characters"/><button class="pw-toggle" onclick="togglePw('pw-signup',this)">👁️</button></div></div>
+      <div class="form-group"><label class="flex items-center gap-2 text-sm"><input type="checkbox"/> I agree to the <a href="#" class="text-accent">Terms</a> and <a href="#" class="text-accent">Privacy Policy</a></label></div>
+      <button class="btn btn-grad w-full btn-lg" onclick="navigate('onboarding');showToast('success','Account created!','Let\'s set up your profile 🎯')">Create Account</button>
+      <p class="text-center text-sm text-muted mt-6">Already have an account? <a href="#" class="text-accent" onclick="navigate('login')">Sign in</a></p>
+      <button class="btn btn-ghost btn-sm mt-4" onclick="navigate('landing')" style="width:100%">← Back to home</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== FORGOT PASSWORD ==================== -->
+<div class="page" id="page-forgot">
+<div class="auth-layout">
+  <div class="auth-left">
+    <div class="flex items-center gap-3 mb-auto">
+      <div style="width:32px;height:32px;background:var(--grad);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-family:var(--font-head)">L</div>
+      <span style="font-family:var(--font-head);font-weight:700;font-size:18px">LearnFlow AI</span>
+    </div>
+    <div style="position:relative;z-index:1;margin:auto 0">
+      <div style="font-size:64px;margin-bottom:24px">🔐</div>
+      <h2 style="font-family:var(--font-head);font-size:36px;font-weight:800;line-height:1.15;margin-bottom:16px">Forgot your<br><span style="background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">password?</span></h2>
+      <p class="text-muted" style="font-size:15px;max-width:320px;line-height:1.7">No worries! Enter your email and we'll send you a link to reset your password.</p>
+    </div>
+  </div>
+  <div class="auth-right">
+    <div class="auth-box">
+      <h2 style="font-family:var(--font-head);font-weight:800;font-size:28px;margin-bottom:6px">Reset password 🔑</h2>
+      <p class="text-muted text-sm mb-6">We'll send you a reset link</p>
+      <div class="form-group"><label class="lbl">Email address</label><input class="input" type="email" placeholder="you@example.com"/></div>
+      <button class="btn btn-grad w-full btn-lg mb-4" onclick="showToast('success','Email sent!','Check your inbox for the reset link 📧')">Send Reset Link</button>
+      <button class="btn btn-ghost w-full" onclick="navigate('login')">← Back to login</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== ONBOARDING ==================== -->
+<div class="page" id="page-onboarding">
+<div class="onboarding-wrap">
+  <div class="ob-card" id="ob-card">
+    <div class="ob-progress" id="ob-progress">
+      <div class="ob-step active"></div><div class="ob-step"></div><div class="ob-step"></div><div class="ob-step"></div><div class="ob-step"></div>
+    </div>
+    <div id="ob-content">
+      <div id="ob-step-0">
+        <div class="text-2xl font-head font-bold mb-2">What's your current experience? 🎓</div>
+        <p class="text-sm text-muted mb-6">This helps us set the right starting point for you.</p>
+        <div class="option-grid">
+          <div class="option-btn" onclick="selectOpt(this)">🌱 Complete Beginner</div>
+          <div class="option-btn" onclick="selectOpt(this)">📚 Some Knowledge</div>
+          <div class="option-btn" onclick="selectOpt(this)">💼 Intermediate</div>
+          <div class="option-btn" onclick="selectOpt(this)">🚀 Advanced</div>
+        </div>
+      </div>
+      <div id="ob-step-1" style="display:none">
+        <div class="text-2xl font-head font-bold mb-2">What's your target role? 🎯</div>
+        <p class="text-sm text-muted mb-6">We'll customize your roadmap for this career path.</p>
+        <div class="option-grid">
+          <div class="option-btn" onclick="selectOpt(this)">💻 Frontend Dev</div>
+          <div class="option-btn" onclick="selectOpt(this)">⚙️ Backend Dev</div>
+          <div class="option-btn" onclick="selectOpt(this)">📱 Mobile Dev</div>
+          <div class="option-btn" onclick="selectOpt(this)">🤖 ML Engineer</div>
+          <div class="option-btn" onclick="selectOpt(this)">📊 Data Scientist</div>
+          <div class="option-btn" onclick="selectOpt(this)">🎨 UI/UX Designer</div>
+          <div class="option-btn" onclick="selectOpt(this)">☁️ DevOps/Cloud</div>
+          <div class="option-btn" onclick="selectOpt(this)">🔐 Security Eng.</div>
+        </div>
+      </div>
+      <div id="ob-step-2" style="display:none">
+        <div class="text-2xl font-head font-bold mb-2">How do you learn best? 🧠</div>
+        <p class="text-sm text-muted mb-6">We'll prioritize resources that match your style.</p>
+        <div class="option-grid">
+          <div class="option-btn" onclick="selectOpt(this)">🎬 Video Courses</div>
+          <div class="option-btn" onclick="selectOpt(this)">📖 Reading/Docs</div>
+          <div class="option-btn" onclick="selectOpt(this)">🏗️ Project-based</div>
+          <div class="option-btn" onclick="selectOpt(this)">🤝 Live Mentoring</div>
+        </div>
+      </div>
+      <div id="ob-step-3" style="display:none">
+        <div class="text-2xl font-head font-bold mb-2">How much time per week? ⏰</div>
+        <p class="text-sm text-muted mb-6">We'll plan your roadmap around your schedule.</p>
+        <div class="option-grid">
+          <div class="option-btn" onclick="selectOpt(this)">⚡ 1–2 hrs/week</div>
+          <div class="option-btn" onclick="selectOpt(this)">🔥 3–5 hrs/week</div>
+          <div class="option-btn" onclick="selectOpt(this)">💪 6–10 hrs/week</div>
+          <div class="option-btn" onclick="selectOpt(this)">🚀 10+ hrs/week</div>
+        </div>
+      </div>
+      <div id="ob-step-4" style="display:none">
+        <div class="text-2xl font-head font-bold mb-2">Any specific interests? ✨</div>
+        <p class="text-sm text-muted mb-6">Select all that apply. We'll weave these into your path.</p>
+        <div class="option-grid">
+          <div class="option-btn" onclick="selectOpt(this)">🌐 Web Dev</div>
+          <div class="option-btn" onclick="selectOpt(this)">📊 Data Analysis</div>
+          <div class="option-btn" onclick="selectOpt(this)">🤖 AI & ML</div>
+          <div class="option-btn" onclick="selectOpt(this)">☁️ Cloud</div>
+          <div class="option-btn" onclick="selectOpt(this)">🔐 Security</div>
+          <div class="option-btn" onclick="selectOpt(this)">🎮 Game Dev</div>
+        </div>
+      </div>
+    </div>
+    <div class="flex justify-between items-center mt-8">
+      <button class="btn btn-ghost" id="ob-back" onclick="obBack()" style="visibility:hidden">← Back</button>
+      <span class="text-sm text-muted" id="ob-counter">Step 1 of 5</span>
+      <button class="btn btn-grad" id="ob-next" onclick="obNext()">Next →</button>
+    </div>
+  </div>
+  <!-- AI Loading -->
+  <div id="ob-loading" style="display:none;position:relative;z-index:1;text-align:center;max-width:480px;width:100%">
+    <div class="ai-loading">
+      <div class="ai-orb"></div>
+      <h2 class="text-2xl font-head font-bold mb-3">AI is building your path...</h2>
+      <p class="text-muted text-sm mb-8" id="ob-loading-text">Analyzing your goals and experience...</p>
+      <div style="height:6px;background:var(--surf2);border-radius:99px;overflow:hidden;margin:0 auto;max-width:300px">
+        <div id="ob-bar" style="width:0%;height:100%;background:var(--grad);border-radius:99px;transition:width .5s ease"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== DASHBOARD ==================== -->
+<div class="page" id="page-dashboard">
+<div class="app-layout">
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">L</div>
+      <div>
+        <div style="font-family:var(--font-head);font-weight:700;font-size:16px">LearnFlow</div>
+        <div class="text-xs text-muted">AI Learning Platform</div>
+      </div>
+      <button class="btn-ghost btn sidebar-close" onclick="closeSidebar()" style="margin-left:auto;font-size:20px">×</button>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-label">Main</div>
+        <div class="nav-item active" onclick="navigate('dashboard')"><span class="nav-icon">🏠</span>Dashboard</div>
+        <div class="nav-item" onclick="navigate('learning-path')"><span class="nav-icon">🗺️</span>My Learning Path</div>
+        <div class="nav-item" onclick="navigate('chat')"><span class="nav-icon">🤖</span>AI Mentor<span class="nav-badge">3</span></div>
+        <div class="nav-item" onclick="navigate('analytics')"><span class="nav-icon">📊</span>Analytics</div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Learn</div>
+        <div class="nav-item" onclick="navigate('assessments')"><span class="nav-icon">📝</span>Assessments</div>
+        <div class="nav-item" onclick="navigate('community')"><span class="nav-icon">👥</span>Community</div>
+        <div class="nav-item" onclick="navigate('notifications')"><span class="nav-icon">🔔</span>Notifications<span class="nav-badge">5</span></div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Account</div>
+        <div class="nav-item" onclick="navigate('profile')"><span class="nav-icon">👤</span>Profile</div>
+        <div class="nav-item" onclick="navigate('pricing')"><span class="nav-icon">💎</span>Upgrade</div>
+        <div class="nav-item" onclick="navigate('admin')"><span class="nav-icon">⚙️</span>Admin</div>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="flex items-center gap-3">
+        <div class="avatar">AC</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:500">Alex Chen</div>
+          <div class="text-xs text-muted">Pro Plan · 12,400 XP</div>
+        </div>
+        <button class="btn-ghost btn btn-icon" style="font-size:16px" onclick="navigate('profile')">⚙️</button>
+      </div>
+    </div>
+  </div>
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+  <!-- Main -->
+  <div class="main-content">
+    <div class="topbar">
+      <div class="flex items-center gap-3">
+        <button class="menu-toggle" onclick="openSidebar()">☰</button>
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input class="search-input" placeholder="Search courses, topics..."/>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button class="btn btn-ghost btn-icon" onclick="navigate('notifications')" style="font-size:18px;position:relative">🔔<span style="position:absolute;top:4px;right:4px;width:8px;height:8px;background:var(--red);border-radius:99px;border:2px solid var(--bg2)"></span></button>
+        <button class="theme-btn" onclick="toggleTheme()">☀️</button>
+        <div class="avatar" style="cursor:pointer" onclick="navigate('profile')">AC</div>
+      </div>
+    </div>
+    <div class="page-content">
+      <!-- Welcome Banner -->
+      <div class="welcome-banner">
+        <div>
+          <div class="text-sm text-muted mb-1">Good morning 👋</div>
+          <h2 style="font-family:var(--font-head);font-size:26px;font-weight:800">Welcome back, Alex!</h2>
+          <p class="text-muted text-sm mt-2">You're on a 🔥 14-day streak! Keep it up — you're 68% through your Frontend Developer path.</p>
+          <div class="flex items-center gap-3 mt-4">
+            <button class="btn btn-grad btn-sm" onclick="navigate('learning-path')">Continue Learning →</button>
+            <button class="btn btn-outline btn-sm" onclick="navigate('chat')">Ask AI Mentor</button>
+          </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:64px;animation:float 3s ease-in-out infinite">🎯</div>
+        </div>
+      </div>
+      <!-- Widgets -->
+      <div class="widget-grid">
+        <div class="widget">
+          <div class="flex justify-between items-start mb-2">
+            <div class="widget-label">Learning Streak</div><span style="font-size:20px">🔥</span>
+          </div>
+          <div class="widget-val">14 Days</div>
+          <div class="widget-delta">↑ Personal best!</div>
+        </div>
+        <div class="widget">
+          <div class="flex justify-between items-start mb-2">
+            <div class="widget-label">XP Points</div><span style="font-size:20px">⚡</span>
+          </div>
+          <div class="widget-val">12,400</div>
+          <div class="widget-delta">↑ +340 today</div>
+        </div>
+        <div class="widget">
+          <div class="flex justify-between items-start mb-2">
+            <div class="widget-label">Completed Topics</div><span style="font-size:20px">✅</span>
+          </div>
+          <div class="widget-val">47</div>
+          <div class="widget-delta">↑ 3 this week</div>
+        </div>
+        <div class="widget">
+          <div class="flex justify-between items-start mb-2">
+            <div class="widget-label">Hours Learned</div><span style="font-size:20px">⏱️</span>
+          </div>
+          <div class="widget-val">82h</div>
+          <div class="widget-delta">↑ +6h this week</div>
+        </div>
+      </div>
+      <!-- Main Grid -->
+      <div style="display:grid;grid-template-columns:1fr 360px;gap:24px;margin-bottom:24px">
+        <!-- Progress Chart -->
+        <div class="card">
+          <div class="flex justify-between items-center mb-4">
+            <div><div style="font-weight:600;font-size:16px">Weekly Progress</div><div class="text-xs text-muted">Hours studied per day</div></div>
+            <div class="badge badge-green">↑ 34% vs last week</div>
+          </div>
+          <div style="position:relative;height:200px"><canvas id="weeklyChart" role="img" aria-label="Weekly learning progress bar chart">Weekly study hours data</canvas></div>
+        </div>
+        <!-- Roadmap mini -->
+        <div class="card">
+          <div class="flex justify-between items-center mb-4"><div style="font-weight:600;font-size:16px">Roadmap Progress</div><button class="btn btn-ghost btn-sm" onclick="navigate('learning-path')">View all</button></div>
+          <div style="margin-bottom:12px">
+            <div class="flex justify-between text-sm mb-1"><span>Overall completion</span><span class="text-accent">68%</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:68%"></div></div>
+          </div>
+          <div class="path-timeline" style="padding-left:28px">
+            <div class="roadmap-node"><div class="node-dot done">✓</div><div><div style="font-weight:500;font-size:14px">HTML & CSS</div><div class="text-xs text-muted">Completed · 8h</div></div></div>
+            <div class="roadmap-node"><div class="node-dot done">✓</div><div><div style="font-weight:500;font-size:14px">JavaScript Fundamentals</div><div class="text-xs text-muted">Completed · 24h</div></div></div>
+            <div class="roadmap-node"><div class="node-dot active">→</div><div><div style="font-weight:500;font-size:14px">React.js</div><div class="text-xs text-muted">In progress · 60% done</div></div></div>
+            <div class="roadmap-node"><div class="node-dot todo">○</div><div><div style="font-weight:500;font-size:14px">TypeScript</div><div class="text-xs text-muted">Locked</div></div></div>
+          </div>
+        </div>
+      </div>
+      <!-- Recommendations -->
+      <div class="card mb-6">
+        <div class="flex justify-between items-center mb-4"><div style="font-weight:600;font-size:16px">🤖 AI Recommendations</div><button class="btn btn-ghost btn-sm">Refresh</button></div>
+        <div class="rec-card mb-3">
+          <div class="rec-thumb">⚛️</div>
+          <div style="flex:1">
+            <div class="flex justify-between"><div style="font-weight:600;font-size:14px">React Hooks Deep Dive</div><div class="badge badge-accent">Recommended</div></div>
+            <div class="text-xs text-muted mt-1">Master useState, useEffect, and custom hooks. 4.5h · Intermediate</div>
+            <div class="flex items-center gap-3 mt-2"><div class="progress-bar" style="flex:1;height:4px"><div class="progress-fill" style="width:0%;background:var(--accent)"></div></div><span class="text-xs text-muted">Not started</span></div>
+          </div>
+        </div>
+        <div class="rec-card mb-3">
+          <div class="rec-thumb">🧪</div>
+          <div style="flex:1">
+            <div class="flex justify-between"><div style="font-weight:600;font-size:14px">Testing with Vitest</div><div class="badge badge-green">Easy Win</div></div>
+            <div class="text-xs text-muted mt-1">Learn modern testing practices. 2h · Beginner-friendly</div>
+            <div class="flex items-center gap-3 mt-2"><div class="progress-bar" style="flex:1;height:4px"><div class="progress-fill" style="width:30%"></div></div><span class="text-xs text-muted">30%</span></div>
+          </div>
+        </div>
+        <div class="rec-card">
+          <div class="rec-thumb">🎨</div>
+          <div style="flex:1">
+            <div class="flex justify-between"><div style="font-weight:600;font-size:14px">CSS Grid & Flexbox Mastery</div><div class="badge badge-amber">Quick</div></div>
+            <div class="text-xs text-muted mt-1">Build complex layouts effortlessly. 1.5h · All levels</div>
+            <div class="flex items-center gap-3 mt-2"><div class="progress-bar" style="flex:1;height:4px"><div class="progress-fill" style="width:80%;background:var(--amber)"></div></div><span class="text-xs text-muted">80%</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== LEARNING PATH ==================== -->
+<div class="page" id="page-learning-path">
+<div class="app-layout">
+  <div class="sidebar" id="sidebar-lp">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">L</div>
+      <div><div style="font-family:var(--font-head);font-weight:700;font-size:16px">LearnFlow</div></div>
+      <button class="btn-ghost btn sidebar-close" onclick="document.getElementById('sidebar-lp').style.transform='translateX(-100%)'" style="margin-left:auto;font-size:20px">×</button>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item" onclick="navigate('dashboard')"><span class="nav-icon">🏠</span>Dashboard</div>
+      <div class="nav-item active" onclick="navigate('learning-path')"><span class="nav-icon">🗺️</span>Learning Path</div>
+      <div class="nav-item" onclick="navigate('chat')"><span class="nav-icon">🤖</span>AI Mentor</div>
+      <div class="nav-item" onclick="navigate('analytics')"><span class="nav-icon">📊</span>Analytics</div>
+      <div class="nav-item" onclick="navigate('assessments')"><span class="nav-icon">📝</span>Assessments</div>
+      <div class="nav-item" onclick="navigate('community')"><span class="nav-icon">👥</span>Community</div>
+      <div class="nav-item" onclick="navigate('profile')"><span class="nav-icon">👤</span>Profile</div>
+      <div class="nav-item" onclick="navigate('pricing')"><span class="nav-icon">💎</span>Upgrade</div>
+    </nav>
+    <div class="sidebar-footer"><div class="flex items-center gap-3"><div class="avatar">AC</div><div><div style="font-size:14px;font-weight:500">Alex Chen</div><div class="text-xs text-muted">Pro Plan</div></div></div></div>
+  </div>
+  <div class="main-content">
+    <div class="topbar">
+      <div class="flex items-center gap-3">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar-lp').style.transform='translateX(0)'">☰</button>
+        <div><div style="font-weight:600">Frontend Developer Path</div><div class="text-xs text-muted">68% complete · Est. 4 weeks remaining</div></div>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="badge badge-accent">🔥 14 day streak</div>
+        <button class="theme-btn" onclick="toggleTheme()">☀️</button>
+      </div>
+    </div>
+    <div class="page-content">
+      <!-- Overview -->
+      <div class="card mb-6">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:20px;text-align:center">
+          <div><div style="font-family:var(--font-head);font-size:28px;font-weight:800;color:var(--accent)">68%</div><div class="text-sm text-muted">Overall Progress</div></div>
+          <div><div style="font-family:var(--font-head);font-size:28px;font-weight:800;color:var(--green)">12</div><div class="text-sm text-muted">Completed</div></div>
+          <div><div style="font-family:var(--font-head);font-size:28px;font-weight:800;color:var(--amber)">5</div><div class="text-sm text-muted">In Progress</div></div>
+          <div><div style="font-family:var(--font-head);font-size:28px;font-weight:800;color:var(--text3)">8</div><div class="text-sm text-muted">Remaining</div></div>
+        </div>
+      </div>
+      <!-- Timeline -->
+      <div class="path-timeline">
+        <!-- Module 1 -->
+        <div class="path-module done">
+          <div class="module-header" onclick="toggleModule(this)">
+            <div class="flex items-center gap-3"><span style="font-size:20px">✅</span><div><div style="font-weight:600">HTML & CSS Fundamentals</div><div class="text-xs text-muted">8 lessons · 8h · Beginner</div></div></div>
+            <div class="flex items-center gap-3"><span class="diff-badge diff-beginner">Beginner</span><div class="badge badge-green">Completed</div><span>▼</span></div>
+          </div>
+          <div class="module-body">
+            <div class="resource-item"><span style="font-size:16px">📄</span><div><div style="font-size:14px;font-weight:500">HTML Structure & Semantics</div><div class="text-xs text-muted">Article · 45 min · Completed</div></div><div class="badge badge-green ml-auto">✓</div></div>
+            <div class="resource-item"><span style="font-size:16px">🎬</span><div><div style="font-size:14px;font-weight:500">CSS Box Model & Layout</div><div class="text-xs text-muted">Video · 1.5h · Completed</div></div><div class="badge badge-green ml-auto">✓</div></div>
+            <div class="resource-item"><span style="font-size:16px">🏗️</span><div><div style="font-size:14px;font-weight:500">Build a Landing Page</div><div class="text-xs text-muted">Project · 2h · Completed</div></div><div class="badge badge-green ml-auto">✓</div></div>
+          </div>
+        </div>
+        <!-- Module 2 -->
+        <div class="path-module done">
+          <div class="module-header" onclick="toggleModule(this)">
+            <div class="flex items-center gap-3"><span style="font-size:20px">✅</span><div><div style="font-weight:600">JavaScript Fundamentals</div><div class="text-xs text-muted">16 lessons · 24h · Beginner–Intermediate</div></div></div>
+            <div class="flex items-center gap-3"><span class="diff-badge diff-intermediate">Intermediate</span><div class="badge badge-green">Completed</div><span>▼</span></div>
+          </div>
+          <div class="module-body">
+            <div class="resource-item"><span style="font-size:16px">📄</span><div><div style="font-size:14px;font-weight:500">Variables, Types & Functions</div><div class="text-xs text-muted">Article · 1h · Completed</div></div><div class="badge badge-green ml-auto">✓</div></div>
+            <div class="resource-item"><span style="font-size:16px">🎬</span><div><div style="font-size:14px;font-weight:500">Async JavaScript & Promises</div><div class="text-xs text-muted">Video · 2h · Completed</div></div><div class="badge badge-green ml-auto">✓</div></div>
+          </div>
+        </div>
+        <!-- Module 3 (Active) -->
+        <div class="path-module" style="position:relative">
+          <div class="module-header" onclick="toggleModule(this)" style="border-color:var(--accent)">
+            <div class="flex items-center gap-3"><span style="font-size:20px">⚛️</span><div><div style="font-weight:600">React.js</div><div class="text-xs text-muted">20 lessons · 36h · Intermediate</div></div></div>
+            <div class="flex items-center gap-3"><span class="diff-badge diff-intermediate">Intermediate</span><div class="badge badge-accent">In Progress · 60%</div><span>▼</span></div>
+          </div>
+          <div class="module-body open">
+            <div style="margin-bottom:12px"><div class="flex justify-between text-sm mb-1"><span>Progress</span><span class="text-accent">60%</span></div><div class="progress-bar"><div class="progress-fill" style="width:60%"></div></div></div>
+            <div class="resource-item"><span style="font-size:16px">🎬</span><div><div style="font-size:14px;font-weight:500">React Components & JSX</div><div class="text-xs text-muted">Video · 2h · Completed</div></div><div class="badge badge-green ml-auto">✓</div></div>
+            <div class="resource-item"><span style="font-size:16px">🎬</span><div><div style="font-size:14px;font-weight:500">State Management with Hooks</div><div class="text-xs text-muted">Video · 3h · Completed</div></div><div class="badge badge-green ml-auto">✓</div></div>
+            <div class="resource-item" style="background:rgba(124,109,250,.08);border:1px solid rgba(124,109,250,.2);border-radius:var(--radius)"><span style="font-size:16px">▶️</span><div><div style="font-size:14px;font-weight:600;color:var(--accent2)">React Router & Navigation</div><div class="text-xs text-muted">Video · 2h · In Progress · 40%</div></div><button class="btn btn-accent btn-sm ml-auto" onclick="showToast('info','Opening course...','React Router lesson loading 🎬')">Continue</button></div>
+            <div class="resource-item" style="opacity:.6"><span style="font-size:16px">🔒</span><div><div style="font-size:14px;font-weight:500">Advanced Patterns</div><div class="text-xs text-muted">Article · 2.5h · Locked</div></div></div>
+          </div>
+        </div>
+        <!-- Module 4 (Locked) -->
+        <div class="path-module locked">
+          <div class="module-header" style="opacity:.6">
+            <div class="flex items-center gap-3"><span style="font-size:20px">🔷</span><div><div style="font-weight:600">TypeScript</div><div class="text-xs text-muted">12 lessons · 20h · Intermediate</div></div></div>
+            <div class="flex items-center gap-3"><span class="diff-badge diff-intermediate">Intermediate</span><div class="badge" style="background:var(--surf3);color:var(--text3)">🔒 Locked</div></div>
+          </div>
+        </div>
+        <!-- Module 5 (Locked) -->
+        <div class="path-module locked">
+          <div class="module-header" style="opacity:.6">
+            <div class="flex items-center gap-3"><span style="font-size:20px">⚡</span><div><div style="font-weight:600">Next.js & Full-Stack</div><div class="text-xs text-muted">24 lessons · 40h · Advanced</div></div></div>
+            <div class="flex items-center gap-3"><span class="diff-badge diff-advanced">Advanced</span><div class="badge" style="background:var(--surf3);color:var(--text3)">🔒 Locked</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== AI MENTOR CHAT ==================== -->
+<div class="page" id="page-chat">
+<div class="app-layout">
+  <div class="sidebar" id="sidebar-chat">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">L</div>
+      <div><div style="font-family:var(--font-head);font-weight:700;font-size:16px">LearnFlow</div></div>
+      <button class="btn-ghost btn sidebar-close" onclick="document.getElementById('sidebar-chat').style.transform='translateX(-100%)'" style="margin-left:auto;font-size:20px">×</button>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item" onclick="navigate('dashboard')"><span class="nav-icon">🏠</span>Dashboard</div>
+      <div class="nav-item" onclick="navigate('learning-path')"><span class="nav-icon">🗺️</span>Learning Path</div>
+      <div class="nav-item active"><span class="nav-icon">🤖</span>AI Mentor</div>
+      <div class="nav-item" onclick="navigate('analytics')"><span class="nav-icon">📊</span>Analytics</div>
+      <div class="nav-item" onclick="navigate('assessments')"><span class="nav-icon">📝</span>Assessments</div>
+      <div class="nav-item" onclick="navigate('community')"><span class="nav-icon">👥</span>Community</div>
+      <div class="nav-item" onclick="navigate('profile')"><span class="nav-icon">👤</span>Profile</div>
+    </nav>
+    <div class="sidebar-footer"><div class="flex items-center gap-3"><div class="avatar">AC</div><div><div style="font-size:14px;font-weight:500">Alex Chen</div><div class="text-xs text-muted">Pro Plan</div></div></div></div>
+  </div>
+  <div class="main-content">
+    <div class="topbar">
+      <div class="flex items-center gap-3">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar-chat').style.transform='translateX(0)'">☰</button>
+        <span style="font-weight:600">AI Mentor Chat</span>
+      </div>
+      <button class="theme-btn" onclick="toggleTheme()">☀️</button>
+    </div>
+    <div class="chat-layout" style="height:calc(100vh - 60px)">
+      <!-- Chat Sidebar -->
+      <div class="chat-sidebar">
+        <div class="flex justify-between items-center mb-4">
+          <div style="font-weight:600;font-size:14px">Conversations</div>
+          <button class="btn btn-outline btn-sm" onclick="startNewChat()">+ New</button>
+        </div>
+        <div class="convo-item active"><div style="font-weight:500;font-size:13px">React Hooks explained</div><div class="text-xs text-muted mt-1">2 hours ago</div></div>
+        <div class="convo-item"><div style="font-weight:500;font-size:13px">TypeScript generics</div><div class="text-xs text-muted mt-1">Yesterday</div></div>
+        <div class="convo-item"><div style="font-weight:500;font-size:13px">CSS Grid layout help</div><div class="text-xs text-muted mt-1">2 days ago</div></div>
+        <div class="convo-item"><div style="font-weight:500;font-size:13px">Async/Await best practices</div><div class="text-xs text-muted mt-1">3 days ago</div></div>
+        <div class="convo-item"><div style="font-weight:500;font-size:13px">REST API design</div><div class="text-xs text-muted mt-1">1 week ago</div></div>
+      </div>
+      <!-- Messages -->
+      <div class="chat-main">
+        <div class="chat-topbar">
+          <div class="ai-avatar">🤖</div>
+          <div><div style="font-weight:600;font-size:15px">Ava — AI Mentor</div><div class="text-xs text-green" style="display:flex;align-items:center;gap:4px"><span style="width:6px;height:6px;background:var(--green);border-radius:99px;display:inline-block"></span>Online · Response in &lt;2s</div></div>
+          <div style="margin-left:auto" class="badge badge-accent">React Expert</div>
+        </div>
+        <div class="messages" id="chat-messages">
+          <div class="msg ai">
+            <div class="ai-avatar">🤖</div>
+            <div>
+              <div class="msg-bubble md">
+                <h3 style="margin-bottom:8px">Hey Alex! 👋 I'm Ava, your AI mentor.</h3>
+                <p>I can see you're working on <strong>React Hooks</strong> right now. I'm here to help you understand concepts, debug code, and guide your learning journey. What would you like to explore?</p>
+              </div>
+              <div class="text-xs text-muted mt-2">2:30 PM</div>
+            </div>
+          </div>
+          <div class="msg user">
+            <div class="avatar">AC</div>
+            <div>
+              <div class="msg-bubble">Can you explain the difference between useState and useReducer? When should I use each one?</div>
+              <div class="text-xs text-muted mt-2" style="text-align:right">2:31 PM</div>
+            </div>
+          </div>
+          <div class="msg ai">
+            <div class="ai-avatar">🤖</div>
+            <div>
+              <div class="msg-bubble md">
+                <p>Great question! Here's the key difference:</p>
+                <p><strong>useState</strong> is perfect for simple, independent state values:</p>
+                <div class="code-block"><span class="kw">const</span> [count, setCount] = <span class="fn">useState</span>(<span class="str">0</span>);</div>
+                <p><strong>useReducer</strong> shines when:</p>
+                <ul>
+                  <li>State logic is complex (multiple sub-values)</li>
+                  <li>Next state depends on previous state</li>
+                  <li>You want Redux-like predictability</li>
+                </ul>
+                <div class="code-block"><span class="kw">const</span> [state, dispatch] = <span class="fn">useReducer</span>(reducer, initialState);</div>
+                <p>Rule of thumb: start with <code>useState</code>, switch to <code>useReducer</code> when it gets complicated. 🎯</p>
+              </div>
+              <div class="text-xs text-muted mt-2">2:31 PM</div>
+            </div>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <div class="prompt-chips">
+            <div class="prompt-chip" onclick="sendMsg(this.textContent)">🔧 Debug my code</div>
+            <div class="prompt-chip" onclick="sendMsg(this.textContent)">📖 Explain a concept</div>
+            <div class="prompt-chip" onclick="sendMsg(this.textContent)">🎯 Give me a challenge</div>
+            <div class="prompt-chip" onclick="sendMsg(this.textContent)">📋 Review my progress</div>
+          </div>
+          <div class="chat-input-wrap">
+            <textarea class="chat-input" id="chat-input" placeholder="Ask Ava anything about your learning..." rows="1" onkeydown="chatKeydown(event)"></textarea>
+            <button class="btn btn-grad btn-sm" onclick="sendChatMsg()">Send ↑</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== ANALYTICS ==================== -->
+<div class="page" id="page-analytics">
+<div class="app-layout">
+  <div class="sidebar" id="sidebar-an">
+    <div class="sidebar-header"><div class="sidebar-logo">L</div><div><div style="font-family:var(--font-head);font-weight:700;font-size:16px">LearnFlow</div></div><button class="btn-ghost btn sidebar-close" onclick="document.getElementById('sidebar-an').style.transform='translateX(-100%)'" style="margin-left:auto;font-size:20px">×</button></div>
+    <nav class="sidebar-nav">
+      <div class="nav-item" onclick="navigate('dashboard')"><span class="nav-icon">🏠</span>Dashboard</div>
+      <div class="nav-item" onclick="navigate('learning-path')"><span class="nav-icon">🗺️</span>Learning Path</div>
+      <div class="nav-item" onclick="navigate('chat')"><span class="nav-icon">🤖</span>AI Mentor</div>
+      <div class="nav-item active"><span class="nav-icon">📊</span>Analytics</div>
+      <div class="nav-item" onclick="navigate('assessments')"><span class="nav-icon">📝</span>Assessments</div>
+      <div class="nav-item" onclick="navigate('community')"><span class="nav-icon">👥</span>Community</div>
+      <div class="nav-item" onclick="navigate('profile')"><span class="nav-icon">👤</span>Profile</div>
+    </nav>
+    <div class="sidebar-footer"><div class="flex items-center gap-3"><div class="avatar">AC</div><div><div style="font-size:14px;font-weight:500">Alex Chen</div><div class="text-xs text-muted">Pro Plan</div></div></div></div>
+  </div>
+  <div class="main-content">
+    <div class="topbar">
+      <div class="flex items-center gap-3"><button class="menu-toggle" onclick="document.getElementById('sidebar-an').style.transform='translateX(0)'">☰</button><span style="font-weight:600">Skill Analytics</span></div>
+      <div class="flex items-center gap-3"><button class="btn btn-outline btn-sm">📥 Export</button><button class="theme-btn" onclick="toggleTheme()">☀️</button></div>
+    </div>
+    <div class="page-content">
+      <div class="analytics-grid">
+        <div class="widget"><div class="widget-label">Total Hours</div><div class="widget-val">82h</div><div class="widget-delta">↑ 12% vs last month</div></div>
+        <div class="widget"><div class="widget-label">Completion Rate</div><div class="widget-val">68%</div><div class="widget-delta">↑ 8% this week</div></div>
+        <div class="widget"><div class="widget-label">Skills Mastered</div><div class="widget-val">12</div><div class="widget-delta">↑ 3 this month</div></div>
+        <div class="widget"><div class="widget-label">Avg. Daily Time</div><div class="widget-val">1.4h</div><div class="widget-delta">↑ 18 min vs last week</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
+        <div class="chart-card">
+          <div class="chart-title">Weekly Learning (Hours)</div>
+          <div class="chart-sub">Past 4 weeks</div>
+          <div style="position:relative;height:220px"><canvas id="analyticsWeekly" role="img" aria-label="Weekly learning hours chart">Hours per week data</canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Skill Proficiency</div>
+          <div class="chart-sub">Self-assessed + AI evaluation</div>
+          <div style="position:relative;height:220px"><canvas id="skillRadar" role="img" aria-label="Skill proficiency radar chart">Skill levels data</canvas></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
+        <div class="chart-card">
+          <div class="chart-title">Completion by Category</div>
+          <div class="chart-sub">Topics completed per domain</div>
+          <div style="position:relative;height:220px"><canvas id="completionChart" role="img" aria-label="Completion by category chart">Completion percentages</canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Daily Activity Heatmap</div>
+          <div class="chart-sub">Your learning consistency over 84 days</div>
+          <div class="heatmap" id="heatmap-grid" style="grid-template-columns:repeat(12,1fr)"></div>
+          <div class="flex justify-between text-xs text-muted mt-3"><span>Less</span><div class="flex gap-2 items-center"><div style="width:12px;height:12px;background:var(--surf3);border-radius:2px"></div><div style="width:12px;height:12px;background:rgba(124,109,250,.3);border-radius:2px"></div><div style="width:12px;height:12px;background:rgba(124,109,250,.7);border-radius:2px"></div><div style="width:12px;height:12px;background:var(--accent);border-radius:2px"></div></div><span>More</span></div>
+        </div>
+      </div>
+      <div class="ai-insight">
+        <div style="font-size:32px;flex-shrink:0">🤖</div>
+        <div>
+          <div style="font-weight:600;margin-bottom:6px">AI Insight</div>
+          <p class="text-sm text-muted">You learn 3× more effectively on <strong style="color:var(--text)">weekday mornings</strong> (9–11 AM). Your JavaScript skills are above the 90th percentile for your experience level. Consider allocating more time to <strong style="color:var(--accent2)">React performance optimization</strong> — it's your biggest skill gap for your target role. <a href="#" class="text-accent" onclick="navigate('chat')">Ask Ava →</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== ASSESSMENTS ==================== -->
+<div class="page" id="page-assessments">
+<div class="app-layout">
+  <div class="sidebar" id="sidebar-as">
+    <div class="sidebar-header"><div class="sidebar-logo">L</div><div><div style="font-family:var(--font-head);font-weight:700;font-size:16px">LearnFlow</div></div><button class="btn-ghost btn sidebar-close" onclick="document.getElementById('sidebar-as').style.transform='translateX(-100%)'" style="margin-left:auto;font-size:20px">×</button></div>
+    <nav class="sidebar-nav">
+      <div class="nav-item" onclick="navigate('dashboard')"><span class="nav-icon">🏠</span>Dashboard</div>
+      <div class="nav-item" onclick="navigate('learning-path')"><span class="nav-icon">🗺️</span>Learning Path</div>
+      <div class="nav-item" onclick="navigate('chat')"><span class="nav-icon">🤖</span>AI Mentor</div>
+      <div class="nav-item" onclick="navigate('analytics')"><span class="nav-icon">📊</span>Analytics</div>
+      <div class="nav-item active"><span class="nav-icon">📝</span>Assessments</div>
+      <div class="nav-item" onclick="navigate('community')"><span class="nav-icon">👥</span>Community</div>
+      <div class="nav-item" onclick="navigate('profile')"><span class="nav-icon">👤</span>Profile</div>
+    </nav>
+    <div class="sidebar-footer"><div class="flex items-center gap-3"><div class="avatar">AC</div><div><div style="font-size:14px;font-weight:500">Alex Chen</div><div class="text-xs text-muted">Pro Plan</div></div></div></div>
+  </div>
+  <div class="main-content">
+    <div class="topbar">
+      <div class="flex items-center gap-3"><button class="menu-toggle" onclick="document.getElementById('sidebar-as').style.transform='translateX(0)'">☰</button><span style="font-weight:600">Assessments</span></div>
+      <button class="theme-btn" onclick="toggleTheme()">☀️</button>
+    </div>
+    <div class="page-content">
+      <div class="assessment-hero">
+        <div style="font-size:48px;margin-bottom:12px">📝</div>
+        <h2 style="font-family:var(--font-head);font-size:24px;font-weight:800;margin-bottom:8px">Test Your Knowledge</h2>
+        <p class="text-muted text-sm mb-6">Complete assessments to earn XP and unlock next modules</p>
+        <div class="flex items-center gap-3 justify-center flex-wrap">
+          <div class="badge badge-green">✓ 8 Completed</div>
+          <div class="badge badge-amber">⏳ 2 In Progress</div>
+          <div class="badge badge-accent">🏆 Top 15%</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 320px;gap:24px">
+        <!-- Quiz -->
+        <div class="quiz-card">
+          <div class="flex justify-between items-center mb-6">
+            <div><div style="font-weight:700;font-size:18px">React Hooks Quiz</div><div class="text-xs text-muted">Question 2 of 5 · +150 XP</div></div>
+            <div class="timer-wrap"><div class="timer-circle" id="quiz-timer">42</div></div>
+          </div>
+          <div class="progress-bar mb-6"><div class="progress-fill" style="width:40%"></div></div>
+          <div style="font-size:16px;font-weight:600;margin-bottom:20px;line-height:1.5">What is the correct way to update state based on the previous state in React?</div>
+          <div id="quiz-opts">
+            <div class="quiz-option" onclick="selectQuiz(this, false)"><span>A</span>setState(state + 1)</div>
+            <div class="quiz-option" onclick="selectQuiz(this, true)"><span>B</span>setState(prev => prev + 1)</div>
+            <div class="quiz-option" onclick="selectQuiz(this, false)"><span>C</span>setState = state + 1</div>
+            <div class="quiz-option" onclick="selectQuiz(this, false)"><span>D</span>useState(state + 1)</div>
+          </div>
+          <div class="flex justify-between mt-6"><button class="btn btn-outline">← Previous</button><button class="btn btn-grad" onclick="showToast('success','Correct! +150 XP ⚡','Keep going!')">Next →</button></div>
+        </div>
+        <!-- Sidebar -->
+        <div>
+          <!-- Leaderboard -->
+          <div class="card mb-4">
+            <div style="font-weight:600;margin-bottom:16px">🏆 Leaderboard</div>
+            <div class="leaderboard-item"><div class="rank-badge" style="background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff">1</div><div class="avatar" style="width:32px;height:32px;font-size:12px">SK</div><div style="flex:1"><div style="font-size:14px;font-weight:500">Sarah K.</div><div class="text-xs text-muted">18,200 XP</div></div></div>
+            <div class="leaderboard-item"><div class="rank-badge" style="background:var(--surf3);color:var(--text2)">2</div><div class="avatar" style="width:32px;height:32px;font-size:12px">MR</div><div style="flex:1"><div style="font-size:14px;font-weight:500">Marcus R.</div><div class="text-xs text-muted">15,600 XP</div></div></div>
+            <div class="leaderboard-item" style="background:rgba(124,109,250,.06);border-radius:var(--radius)"><div class="rank-badge" style="background:rgba(124,109,250,.2);color:var(--accent2)">3</div><div class="avatar" style="width:32px;height:32px;font-size:12px">AC</div><div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--accent2)">You (Alex)</div><div class="text-xs text-muted">12,400 XP</div></div></div>
+            <div class="leaderboard-item"><div class="rank-badge" style="background:var(--surf3);color:var(--text2)">4</div><div class="avatar" style="width:32px;height:32px;font-size:12px">JP</div><div style="flex:1"><div style="font-size:14px;font-weight:500">James P.</div><div class="text-xs text-muted">11,800 XP</div></div></div>
+          </div>
+          <!-- Achievements -->
+          <div class="card">
+            <div style="font-weight:600;margin-bottom:12px">🎖️ Achievements</div>
+            <div class="badge-3">
+              <div class="achievement unlocked">🔥 14-Day Streak</div>
+              <div class="achievement unlocked">⚡ Speed Learner</div>
+              <div class="achievement unlocked">🎯 First Quiz</div>
+              <div class="achievement">🏆 Top 10% <span class="text-xs text-muted" style="margin-left:4px">Locked</span></div>
+              <div class="achievement">💯 Perfect Score <span class="text-xs text-muted" style="margin-left:4px">Locked</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== COMMUNITY ==================== -->
+<div class="page" id="page-community">
+<div class="app-layout">
+  <div class="sidebar" id="sidebar-co">
+    <div class="sidebar-header"><div class="sidebar-logo">L</div><div><div style="font-family:var(--font-head);font-weight:700;font-size:16px">LearnFlow</div></div><button class="btn-ghost btn sidebar-close" onclick="document.getElementById('sidebar-co').style.transform='translateX(-100%)'" style="margin-left:auto;font-size:20px">×</button></div>
+    <nav class="sidebar-nav">
+      <div class="nav-item" onclick="navigate('dashboard')"><span class="nav-icon">🏠</span>Dashboard</div>
+      <div class="nav-item" onclick="navigate('learning-path')"><span class="nav-icon">🗺️</span>Learning Path</div>
+      <div class="nav-item" onclick="navigate('chat')"><span class="nav-icon">🤖</span>AI Mentor</div>
+      <div class="nav-item" onclick="navigate('analytics')"><span class="nav-icon">📊</span>Analytics</div>
+      <div class="nav-item" onclick="navigate('assessments')"><span class="nav-icon">📝</span>Assessments</div>
+      <div class="nav-item active"><span class="nav-icon">👥</span>Community</div>
+      <div class="nav-item" onclick="navigate('profile')"><span class="nav-icon">👤</span>Profile</div>
+    </nav>
+    <div class="sidebar-footer"><div class="flex items-center gap-3"><div class="avatar">AC</div><div><div style="font-size:14px;font-weight:500">Alex Chen</div><div class="text-xs text-muted">Pro Plan</div></div></div></div>
+  </div>
+  <div class="main-content">
+    <div class="topbar">
+      <div class="flex items-center gap-3"><button class="menu-toggle" onclick="document.getElementById('sidebar-co').style.transform='translateX(0)'">☰</button><span style="font-weight:600">Community</span></div>
+      <button class="btn btn-grad btn-sm" onclick="showToast('info','Post editor','Opening post editor... 📝')">+ New Post</button>
+    </div>
+    <div class="page-content">
+      <div class="feed">
+        <div>
+          <!-- Trending -->
+          <div class="flex gap-3 mb-6 flex-wrap">
+            <div class="badge badge-accent">🔥 Trending</div>
+            <div class="badge badge-cyan">#ReactHooks</div>
+            <div class="badge badge-accent">#TypeScript</div>
+            <div class="badge badge-green">#WebDev</div>
+            <div class="badge badge-amber">#AI</div>
+          </div>
+          <!-- Posts -->
+          <div class="post-card">
+            <div class="flex items-center gap-3 mb-3"><div class="avatar" style="background:var(--grad2)">SK</div><div><div style="font-weight:600;font-size:14px">Sarah Kim</div><div class="text-xs text-muted">2 hours ago · Frontend Developer</div></div><div class="badge badge-green ml-auto">Top Contributor</div></div>
+            <div style="font-size:15px;font-weight:600;margin-bottom:8px">🎉 Just landed my dream job at Google!</div>
+            <p class="text-sm text-muted" style="line-height:1.7">After 8 months on LearnFlow AI, I finally got the offer! The personalized React path and AI mentor were game changers. Don't give up on your journey, everyone! 💪</p>
+            <div class="post-actions">
+              <div class="post-action-btn">❤️ 142 Likes</div>
+              <div class="post-action-btn">💬 38 Comments</div>
+              <div class="post-action-btn">↗️ Share</div>
+              <div class="post-action-btn">🔖 Save</div>
+            </div>
+          </div>
+          <div class="post-card">
+            <div class="flex items-center gap-3 mb-3"><div class="avatar" style="background:linear-gradient(135deg,#06b6d4,#22c55e)">MR</div><div><div style="font-weight:600;font-size:14px">Marcus Rodriguez</div><div class="text-xs text-muted">5 hours ago · Full-Stack Dev</div></div></div>
+            <div style="font-size:15px;font-weight:600;margin-bottom:8px">💡 Pro tip: Understanding useCallback vs useMemo</div>
+            <p class="text-sm text-muted" style="line-height:1.7">Spent 2 hours with the AI mentor debugging performance issues and finally understood when to use each. Here's my quick mental model: useCallback is for functions, useMemo is for values. Both only recalculate when dependencies change.</p>
+            <div class="code-block" style="margin-top:12px"><span class="kw">const</span> memoizedValue = <span class="fn">useMemo</span>(() => <span class="fn">computeValue</span>(a, b), [a, b]);<br><span class="kw">const</span> memoizedFn = <span class="fn">useCallback</span>(() => <span class="fn">doSomething</span>(a), [a]);</div>
+            <div class="post-actions">
+              <div class="post-action-btn">❤️ 89 Likes</div>
+              <div class="post-action-btn">💬 21 Comments</div>
+              <div class="post-action-btn">↗️ Share</div>
+              <div class="post-action-btn">🔖 Save</div>
+            </div>
+          </div>
+          <!-- Study Group -->
+          <div class="post-card" style="border-color:rgba(6,182,212,.3);background:rgba(6,182,212,.04)">
+            <div class="flex items-center gap-3 mb-3"><div style="font-size:28px">👥</div><div><div style="font-weight:600;font-size:14px">React Study Group</div><div class="text-xs text-muted">24 members · Active now</div></div><button class="btn btn-outline btn-sm ml-auto" onclick="showToast('success','Joined!','Welcome to React Study Group 👥')">Join Group</button></div>
+            <p class="text-sm text-muted">Weekly sessions every Sunday 3PM UTC. Currently working through the React docs together. All levels welcome!</p>
+          </div>
+        </div>
+        <!-- Sidebar -->
+        <div>
+          <div class="card mb-4">
+            <div style="font-weight:600;margin-bottom:14px">🌟 Top Mentors</div>
+            <div class="mentor-card"><div class="avatar" style="background:var(--grad)">JS</div><div><div style="font-weight:600;font-size:13px">Jake Smith</div><div class="text-xs text-muted">Senior @ Meta · React expert</div><div class="badge badge-accent mt-1" style="font-size:10px">⭐ 4.9 · 340 sessions</div></div><button class="btn btn-outline btn-sm ml-auto" onclick="showToast('info','Booking...','Opening mentor schedule 📅')">Book</button></div>
+            <div class="mentor-card"><div class="avatar" style="background:var(--grad2)">AP</div><div><div style="font-weight:600;font-size:13px">Aisha Patel</div><div class="text-xs text-muted">ML Engineer @ OpenAI</div><div class="badge badge-accent mt-1" style="font-size:10px">⭐ 4.8 · 215 sessions</div></div><button class="btn btn-outline btn-sm ml-auto" onclick="showToast('info','Booking...','Opening mentor schedule 📅')">Book</button></div>
+          </div>
+          <div class="card">
+            <div style="font-weight:600;margin-bottom:14px">👥 Study Groups</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div class="flex justify-between items-center"><div class="text-sm">⚛️ React Mastery</div><div class="flex items-center gap-2"><span class="text-xs text-muted">24 members</span><button class="btn btn-outline btn-sm" onclick="showToast('success','Joined!','')">Join</button></div></div>
+              <div class="flex justify-between items-center"><div class="text-sm">🐍 Python & ML</div><div class="flex items-center gap-2"><span class="text-xs text-muted">56 members</span><button class="btn btn-outline btn-sm" onclick="showToast('success','Joined!','')">Join</button></div></div>
+              <div class="flex justify-between items-center"><div class="text-sm">🎨 UI/UX Design</div><div class="flex items-center gap-2"><span class="text-xs text-muted">31 members</span><button class="btn btn-outline btn-sm" onclick="showToast('success','Joined!','')">Join</button></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== PROFILE ==================== -->
+<div class="page" id="page-profile">
+<div class="app-layout">
+  <div class="sidebar" id="sidebar-pr">
+    <div class="sidebar-header"><div class="sidebar-logo">L</div><div><div style="font-family:var(--font-head);font-weight:700;font-size:16px">LearnFlow</div></div><button class="btn-ghost btn sidebar-close" onclick="document.getElementById('sidebar-pr').style.transform='translateX(-100%)'" style="margin-left:auto;font-size:20px">×</button></div>
+    <nav class="sidebar-nav">
+      <div class="nav-item" onclick="navigate('dashboard')"><span class="nav-icon">🏠</span>Dashboard</div>
+      <div class="nav-item" onclick="navigate('learning-path')"><span class="nav-icon">🗺️</span>Learning Path</div>
+      <div class="nav-item" onclick="navigate('chat')"><span class="nav-icon">🤖</span>AI Mentor</div>
+      <div class="nav-item" onclick="navigate('analytics')"><span class="nav-icon">📊</span>Analytics</div>
+      <div class="nav-item" onclick="navigate('assessments')"><span class="nav-icon">📝</span>Assessments</div>
+      <div class="nav-item" onclick="navigate('community')"><span class="nav-icon">👥</span>Community</div>
+      <div class="nav-item active"><span class="nav-icon">👤</span>Profile</div>
+      <div class="nav-item" onclick="navigate('pricing')"><span class="nav-icon">💎</span>Upgrade</div>
+    </nav>
+    <div class="sidebar-footer"><div class="flex items-center gap-3"><div class="avatar">AC</div><div><div style="font-size:14px;font-weight:500">Alex Chen</div><div class="text-xs text-muted">Pro Plan</div></div></div></div>
+  </div>
+  <div class="main-content">
+    <div class="topbar">
+      <div class="flex items-center gap-3"><button class="menu-toggle" onclick="document.getElementById('sidebar-pr').style.transform='translateX(0)'">☰</button><span style="font-weight:600">Profile Settings</span></div>
+      <div class="flex items-center gap-3"><button class="btn btn-grad btn-sm" onclick="showToast('success','Saved!','Profile updated ✓')">Save Changes</button><button class="theme-btn" onclick="toggleTheme()">☀️</button></div>
+    </div>
+    <div class="page-content">
+      <div class="profile-header">
+        <div style="position:relative">
+          <div class="profile-avatar">AC</div>
+          <button style="position:absolute;bottom:0;right:0;width:28px;height:28px;background:var(--accent);border-radius:99px;border:none;color:#fff;font-size:14px;cursor:pointer">✏️</button>
+        </div>
+        <div style="flex:1">
+          <div style="font-family:var(--font-head);font-size:24px;font-weight:800">Alex Chen</div>
+          <div class="text-muted text-sm mb-3">Frontend Developer · Pro Member since Jan 2024</div>
+          <div class="flex gap-3 flex-wrap">
+            <div class="badge badge-accent">⭐ Level 12</div>
+            <div class="badge badge-green">🔥 14-day streak</div>
+            <div class="badge badge-amber">⚡ 12,400 XP</div>
+            <div class="badge badge-cyan">🏆 Top 15%</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:20px;max-width:400px">
+            <div style="text-align:center"><div style="font-family:var(--font-head);font-weight:700;font-size:20px">47</div><div class="text-xs text-muted">Topics</div></div>
+            <div style="text-align:center"><div style="font-family:var(--font-head);font-weight:700;font-size:20px">82h</div><div class="text-xs text-muted">Learned</div></div>
+            <div style="text-align:center"><div style="font-family:var(--font-head);font-weight:700;font-size:20px">8</div><div class="text-xs text-muted">Quizzes</div></div>
+            <div style="text-align:center"><div style="font-family:var(--font-head);font-weight:700;font-size:20px">3</div><div class="text-xs text-muted">Projects</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab(this,'tab-account')">Account</div>
+        <div class="tab" onclick="switchTab(this,'tab-learning')">Learning Prefs</div>
+        <div class="tab" onclick="switchTab(this,'tab-notifs')">Notifications</div>
+        <div class="tab" onclick="switchTab(this,'tab-security')">Security</div>
+      </div>
+      <div id="tab-account">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:720px">
+          <div class="form-group"><label class="lbl">First Name</label><input class="input" value="Alex"/></div>
+          <div class="form-group"><label class="lbl">Last Name</label><input class="input" value="Chen"/></div>
+          <div class="form-group"><label class="lbl">Email</label><input class="input" type="email" value="alex.chen@example.com"/></div>
+          <div class="form-group"><label class="lbl">Username</label><input class="input" value="alexchen_dev"/></div>
+          <div class="form-group" style="grid-column:span 2"><label class="lbl">Bio</label><textarea class="input" rows="3" style="resize:vertical">Frontend developer passionate about React and building beautiful UIs. Currently learning TypeScript and Next.js.</textarea></div>
+          <div class="form-group"><label class="lbl">Location</label><input class="input" value="San Francisco, CA"/></div>
+          <div class="form-group"><label class="lbl">LinkedIn</label><input class="input" value="linkedin.com/in/alexchen"/></div>
+        </div>
+      </div>
+      <div id="tab-learning" style="display:none">
+        <div style="max-width:540px">
+          <div class="form-group"><label class="lbl">Target Role</label><select class="input"><option selected>Frontend Developer</option><option>Full-Stack Developer</option><option>UI/UX Designer</option></select></div>
+          <div class="form-group"><label class="lbl">Learning Style</label><div class="option-grid" style="margin-top:8px"><div class="option-btn sel">🎬 Video</div><div class="option-btn">📖 Reading</div><div class="option-btn">🏗️ Projects</div><div class="option-btn">🤝 Mentoring</div></div></div>
+          <div class="form-group"><label class="lbl">Weekly Study Goal (hours)</label><input class="input" type="number" value="10" min="1" max="40"/></div>
+          <div class="form-group"><label class="lbl">Preferred Language</label><select class="input"><option>English</option><option>Spanish</option><option>French</option><option>Hindi</option></select></div>
+        </div>
+      </div>
+      <div id="tab-notifs" style="display:none">
+        <div style="max-width:500px;display:flex;flex-direction:column;gap:16px">
+          <div class="card-sm flex justify-between items-center"><div><div style="font-weight:500;font-size:14px">Learning reminders</div><div class="text-xs text-muted">Daily reminder to continue your path</div></div><div class="toggle-track on" onclick="this.classList.toggle('on')"><div class="toggle-knob"></div></div></div>
+          <div class="card-sm flex justify-between items-center"><div><div style="font-weight:500;font-size:14px">Streak alerts</div><div class="text-xs text-muted">Alert when streak is at risk</div></div><div class="toggle-track on" onclick="this.classList.toggle('on')"><div class="toggle-knob"></div></div></div>
+          <div class="card-sm flex justify-between items-center"><div><div style="font-weight:500;font-size:14px">Community activity</div><div class="text-xs text-muted">Replies and mentions</div></div><div class="toggle-track" onclick="this.classList.toggle('on')"><div class="toggle-knob"></div></div></div>
+          <div class="card-sm flex justify-between items-center"><div><div style="font-weight:500;font-size:14px">Weekly report</div><div class="text-xs text-muted">Progress summary every Sunday</div></div><div class="toggle-track on" onclick="this.classList.toggle('on')"><div class="toggle-knob"></div></div></div>
+        </div>
+      </div>
+      <div id="tab-security" style="display:none">
+        <div style="max-width:480px">
+          <div class="form-group"><label class="lbl">Current Password</label><input class="input" type="password" placeholder="••••••••"/></div>
+          <div class="form-group"><label class="lbl">New Password</label><input class="input" type="password" placeholder="Min. 8 characters"/></div>
+          <div class="form-group"><label class="lbl">Confirm New Password</label><input class="input" type="password" placeholder="Repeat new password"/></div>
+          <button class="btn btn-grad" onclick="showToast('success','Password updated!','Your password has been changed ✓')">Update Password</button>
+          <div class="card mt-6"><div style="font-weight:600;margin-bottom:12px">Two-Factor Authentication</div><p class="text-sm text-muted mb-4">Add an extra layer of security to your account.</p><button class="btn btn-outline btn-sm" onclick="showToast('info','2FA','Setting up authenticator app...')">Enable 2FA</button></div>
+          <div class="card mt-4"><div style="font-weight:600;margin-bottom:12px;color:var(--red)">Danger Zone</div><button class="btn btn-sm" style="background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.3)" onclick="showToast('info','Confirm','Are you sure? This cannot be undone.')">Delete Account</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== PRICING ==================== -->
+<div class="page" id="page-pricing">
+<div class="app-layout">
+  <div class="sidebar" id="sidebar-pi">
+    <div class="sidebar-header"><div class="sidebar-logo">L</div><div><div style="font-family:var(--font-head);font-weight:700;font-size:16px">LearnFlow</div></div><button class="btn-ghost btn sidebar-close" onclick="document.getElementById('sidebar-pi').style.transform='translateX(-100%)'" style="margin-left:auto;font-size:20px">×</button></div>
+    <nav class="sidebar-nav">
+      <div class="nav-item" onclick="navigate('dashboard')"><span class="nav-icon">🏠</span>Dashboard</div>
+      <div class="nav-item" onclick="navigate('learning-path')"><span class="nav-icon">🗺️</span>Learning Path</div>
+      <div class="nav-item active"><span class="nav-icon">💎</span>Pricing</div>
+      <div class="nav-item" onclick="navigate('enterprise')"><span class="nav-icon">🏢</span>Enterprise</div>
+    </nav>
+    <div class="sidebar-footer"><div class="flex items-center gap-3"><div class="avatar">AC</div><div><div style="font-size:14px;font-weight:500">Alex Chen</div><div class="text-xs text-muted">Pro Plan</div></div></div></div>
+  </div>
+  <div class="main-content">
+    <div class="topbar"><div class="flex items-center gap-3"><button class="menu-toggle" onclick="document.getElementById('sidebar-pi').style.transform='translateX(0)'">☰</button><span style="font-weight:600">Pricing & Plans</span></div><button class="theme-btn" onclick="toggleTheme()">☀️</button></div>
+    <div class="page-content">
+      <div class="pricing-hero">
+        <div class="section-tag" style="margin:0 auto 12px">💎 Simple Pricing</div>
+        <div class="section-title mb-4">Choose your <span style="color:var(--accent2)">learning plan</span></div>
+        <p class="text-muted" style="max-width:480px;margin:0 auto">Start free, upgrade when you need more. Cancel anytime. No hidden fees.</p>
+        <div class="toggle-wrap">
+          <span class="text-sm text-muted">Monthly</span>
+          <div class="toggle-track on" id="billing-toggle" onclick="this.classList.toggle('on');updatePricing()"><div class="toggle-knob"></div></div>
+          <span class="text-sm text-muted">Yearly <span class="badge badge-green" style="vertical-align:middle">Save 40%</span></span>
+        </div>
+      </div>
+      <div class="pricing-grid" style="max-width:960px;margin:0 auto">
+        <div class="pricing-card">
+          <div class="badge badge-accent mb-3">Free</div>
+          <p class="text-sm text-muted mb-2">Perfect to get started</p>
+          <div class="price-amount" id="price-free">$0</div><div class="text-muted text-sm mb-6">forever free</div>
+          <button class="btn btn-outline w-full mb-6">Current Plan</button>
+          <div class="plan-feature">✓ 1 Learning Path</div><div class="plan-feature">✓ AI Chat (10/day)</div><div class="plan-feature">✓ Basic Analytics</div><div class="plan-feature">✓ Community Access</div><div class="plan-feature" style="opacity:.4">✗ Unlimited Paths</div><div class="plan-feature" style="opacity:.4">✗ Priority Support</div>
+        </div>
+        <div class="pricing-card featured">
+          <div class="badge" style="background:var(--accent);color:#fff;margin-bottom:12px">Pro · Most Popular</div>
+          <p class="text-sm text-muted mb-2">For serious learners</p>
+          <div class="price-amount" id="price-pro" style="background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">$11</div><div class="text-muted text-sm mb-6" id="period-pro">/month, billed yearly</div>
+          <button class="btn btn-grad w-full mb-6" onclick="showToast('success','Upgraded!','Welcome to Pro! 🚀')">Upgrade to Pro</button>
+          <div class="plan-feature">✓ Unlimited Paths</div><div class="plan-feature">✓ Unlimited AI Chat</div><div class="plan-feature">✓ Advanced Analytics</div><div class="plan-feature">✓ Priority Support</div><div class="plan-feature">✓ Certificates</div><div class="plan-feature">✓ Offline Mode</div>
+        </div>
+        <div class="pricing-card">
+          <div class="badge badge-cyan mb-3">Enterprise</div>
+          <p class="text-sm text-muted mb-2">For teams & organizations</p>
+          <div class="price-amount">Custom</div><div class="text-muted text-sm mb-6">volume pricing</div>
+          <button class="btn btn-outline w-full mb-6" onclick="navigate('enterprise')">Contact Sales</button>
+          <div class="plan-feature">✓ Everything in Pro</div><div class="plan-feature">✓ Team Dashboard</div><div class="plan-feature">✓ SSO & SAML</div><div class="plan-feature">✓ API Access</div><div class="plan-feature">✓ Dedicated CSM</div><div class="plan-feature">✓ Custom Branding</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== NOTIFICATIONS ==================== -->
+<div class="page" id="page-notifications">
+<div class="app-layout">
+  <div class="sidebar" id="sidebar-no">
+    <div class="sidebar-header"><div class="sidebar-logo">L</div><div><div style="font-family:var(--font-head);font-weight:700;font-size:16px">LearnFlow</div></div><button class="btn-ghost btn sidebar-close" onclick="document.getElementById('sidebar-no').style.transform='translateX(-100%)'" style="margin-left:auto;font-size:20px">×</button></div>
+    <nav class="sidebar-nav">
+      <div class="nav-item" onclick="navigate('dashboard')"><span class="nav-icon">🏠</span>Dashboard</div>
+      <div class="nav-item" onclick="navigate('learning-path')"><span class="nav-icon">🗺️</span>Learning Path</div>
+      <div class="nav-item" onclick="navigate('chat')"><span class="nav-icon">🤖</span>AI Mentor</div>
+      <div class="nav-item" onclick="navigate('analytics')"><span class="nav-icon">📊</span>Analytics</div>
+      <div class="nav-item" onclick="navigate('assessments')"><span class="nav-icon">📝</span>Assessments</div>
+      <div class="nav-item" onclick="navigate('community')"><span class="nav-icon">👥</span>Community</div>
+      <div class="nav-item active"><span class="nav-icon">🔔</span>Notifications</div>
+    </nav>
+    <div class="sidebar-footer"><div class="flex items-center gap-3"><div class="avatar">AC</div><div><div style="font-size:14px;font-weight:500">Alex Chen</div><div class="text-xs text-muted">Pro Plan</div></div></div></div>
+  </div>
+  <div class="main-content">
+    <div class="topbar"><div class="flex items-center gap-3"><button class="menu-toggle" onclick="document.getElementById('sidebar-no').style.transform='translateX(0)'">☰</button><span style="font-weight:600">Notifications</span></div><div class="flex items-center gap-3"><button class="btn btn-ghost btn-sm">Mark all read</button><button class="theme-btn" onclick="toggleTheme()">☀️</button></div></div>
+    <div class="page-content">
+      <div style="max-width:680px;margin:0 auto">
+        <div class="notif-item unread"><div class="notif-icon" style="background:rgba(245,158,11,.12)">🔥</div><div class="flex-1"><div style="font-weight:600;font-size:14px">Streak Achievement!</div><div class="text-sm text-muted mt-1">You've maintained a 14-day learning streak! Earn the "Dedicated Learner" badge.</div><div class="text-xs text-muted mt-2">2 minutes ago</div></div><div class="notif-dot"></div></div>
+        <div class="notif-item unread"><div class="notif-icon" style="background:rgba(124,109,250,.12)">🤖</div><div class="flex-1"><div style="font-weight:600;font-size:14px">Ava has a tip for you</div><div class="text-sm text-muted mt-1">Based on your recent activity, Ava recommends diving into React performance optimization next.</div><div class="text-xs text-muted mt-2">1 hour ago</div></div><div class="notif-dot"></div></div>
+        <div class="notif-item unread"><div class="notif-icon" style="background:rgba(34,197,94,.12)">✅</div><div class="flex-1"><div style="font-weight:600;font-size:14px">Module completed!</div><div class="text-sm text-muted mt-1">Congrats! You've completed "JavaScript Fundamentals". Next up: React.js.</div><div class="text-xs text-muted mt-2">3 hours ago</div></div><div class="notif-dot"></div></div>
+        <div class="notif-item unread"><div class="notif-icon" style="background:rgba(6,182,212,.12)">💬</div><div class="flex-1"><div style="font-weight:600;font-size:14px">Sarah Kim replied to your comment</div><div class="text-sm text-muted mt-1">"Thanks for the tip about useCallback! It fixed my performance issue."</div><div class="text-xs text-muted mt-2">5 hours ago</div></div><div class="notif-dot"></div></div>
+        <div class="notif-item unread"><div class="notif-icon" style="background:rgba(245,158,11,.12)">⚡</div><div class="flex-1"><div style="font-weight:600;font-size:14px">XP Milestone!</div><div class="text-sm text-muted mt-1">You've reached 12,000 XP! You're now in the top 15% of learners on your path.</div><div class="text-xs text-muted mt-2">Yesterday</div></div><div class="notif-dot"></div></div>
+        <div class="notif-item"><div class="notif-icon" style="background:var(--surf2)">📅</div><div class="flex-1"><div style="font-weight:600;font-size:14px">Weekly report ready</div><div class="text-sm text-muted mt-1">Your learning summary for this week is ready. You studied 8.5 hours total.</div><div class="text-xs text-muted mt-2">2 days ago</div></div></div>
+        <div class="notif-item"><div class="notif-icon" style="background:var(--surf2)">🆕</div><div class="flex-1"><div style="font-weight:600;font-size:14px">New course added to your path</div><div class="text-sm text-muted mt-1">AI added "React Query" to your learning path based on your goals.</div><div class="text-xs text-muted mt-2">3 days ago</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== ADMIN DASHBOARD ==================== -->
+<div class="page" id="page-admin">
+<div class="app-layout">
+  <div class="sidebar" id="sidebar-ad">
+    <div class="sidebar-header"><div class="sidebar-logo">L</div><div><div style="font-family:var(--font-head);font-weight:700;font-size:16px">Admin Panel</div></div><button class="btn-ghost btn sidebar-close" onclick="document.getElementById('sidebar-ad').style.transform='translateX(-100%)'" style="margin-left:auto;font-size:20px">×</button></div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active"><span class="nav-icon">⚙️</span>Overview</div>
+      <div class="nav-item"><span class="nav-icon">👥</span>Users</div>
+      <div class="nav-item"><span class="nav-icon">📚</span>Content</div>
+      <div class="nav-item"><span class="nav-icon">💰</span>Revenue</div>
+      <div class="nav-item"><span class="nav-icon">🤖</span>AI Usage</div>
+      <div class="nav-item"><span class="nav-icon">⚠️</span>Moderation</div>
+      <div class="nav-item" onclick="navigate('dashboard')"><span class="nav-icon">← </span>Back to App</div>
+    </nav>
+    <div class="sidebar-footer"><div class="flex items-center gap-3"><div class="avatar" style="background:var(--red)">AD</div><div><div style="font-size:14px;font-weight:500">Admin User</div><div class="text-xs text-muted">Super Admin</div></div></div></div>
+  </div>
+  <div class="main-content">
+    <div class="topbar"><div class="flex items-center gap-3"><button class="menu-toggle" onclick="document.getElementById('sidebar-ad').style.transform='translateX(0)'">☰</button><span style="font-weight:600">Admin Dashboard</span></div><div class="flex items-center gap-3"><div class="badge badge-red">⚠️ 3 Issues</div><button class="theme-btn" onclick="toggleTheme()">☀️</button></div></div>
+    <div class="page-content">
+      <div class="admin-grid">
+        <div class="widget"><div class="widget-label">Total Users</div><div class="widget-val">512,840</div><div class="widget-delta">↑ 2,340 this week</div></div>
+        <div class="widget"><div class="widget-label">MRR</div><div class="widget-val">$94,200</div><div class="widget-delta">↑ 12% MoM</div></div>
+        <div class="widget"><div class="widget-label">AI Queries/day</div><div class="widget-val">1.2M</div><div class="widget-delta">↑ 18% this week</div></div>
+        <div class="widget"><div class="widget-label">Avg. Session</div><div class="widget-val">24 min</div><div class="widget-delta">↑ 3 min vs last week</div></div>
+      </div>
+      <div class="admin-chart-grid">
+        <div class="chart-card">
+          <div class="chart-title">Revenue Growth (MRR)</div>
+          <div class="chart-sub">Monthly Recurring Revenue</div>
+          <div style="position:relative;height:200px"><canvas id="adminRevenue" role="img" aria-label="Admin revenue growth chart">Revenue data</canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">User Acquisition</div>
+          <div class="chart-sub">New signups per day this week</div>
+          <div style="position:relative;height:200px"><canvas id="adminUsers" role="img" aria-label="User acquisition chart">User data</canvas></div>
+        </div>
+      </div>
+      <!-- User table -->
+      <div class="card">
+        <div class="flex justify-between items-center mb-4"><div style="font-weight:600">Recent Users</div><button class="btn btn-outline btn-sm">View All →</button></div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>User</th><th>Plan</th><th>XP</th><th>Joined</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><div class="flex items-center gap-2"><div class="avatar" style="width:28px;height:28px;font-size:11px">SK</div>Sarah Kim</div></td><td><div class="badge badge-accent">Pro</div></td><td>18,200</td><td>Jan 10</td><td><div class="badge badge-green">Active</div></td><td><button class="btn btn-ghost btn-sm">Manage</button></td></tr>
+              <tr><td><div class="flex items-center gap-2"><div class="avatar" style="width:28px;height:28px;font-size:11px;background:var(--grad2)">MR</div>Marcus R.</div></td><td><div class="badge badge-accent">Pro</div></td><td>15,600</td><td>Dec 15</td><td><div class="badge badge-green">Active</div></td><td><button class="btn btn-ghost btn-sm">Manage</button></td></tr>
+              <tr><td><div class="flex items-center gap-2"><div class="avatar" style="width:28px;height:28px;font-size:11px">AP</div>Aisha P.</div></td><td><div class="badge badge-cyan">Enterprise</div></td><td>24,100</td><td>Nov 22</td><td><div class="badge badge-green">Active</div></td><td><button class="btn btn-ghost btn-sm">Manage</button></td></tr>
+              <tr><td><div class="flex items-center gap-2"><div class="avatar" style="width:28px;height:28px;font-size:11px">JP</div>James P.</div></td><td><div class="badge" style="background:var(--surf3);color:var(--text2)">Free</div></td><td>4,200</td><td>Feb 3</td><td><div class="badge badge-amber">Trial</div></td><td><button class="btn btn-ghost btn-sm">Manage</button></td></tr>
+              <tr><td><div class="flex items-center gap-2"><div class="avatar" style="width:28px;height:28px;font-size:11px">LT</div>Liu T.</div></td><td><div class="badge badge-accent">Pro</div></td><td>9,800</td><td>Jan 28</td><td><div class="badge badge-red">Suspended</div></td><td><button class="btn btn-ghost btn-sm">Review</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== ENTERPRISE DASHBOARD ==================== -->
+<div class="page" id="page-enterprise">
+<div class="app-layout">
+  <div class="sidebar" id="sidebar-en">
+    <div class="sidebar-header"><div class="sidebar-logo">L</div><div><div style="font-family:var(--font-head);font-weight:700;font-size:16px">Enterprise</div></div><button class="btn-ghost btn sidebar-close" onclick="document.getElementById('sidebar-en').style.transform='translateX(-100%)'" style="margin-left:auto;font-size:20px">×</button></div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active"><span class="nav-icon">🏢</span>Overview</div>
+      <div class="nav-item"><span class="nav-icon">👥</span>Team Progress</div>
+      <div class="nav-item"><span class="nav-icon">📊</span>Skill Reports</div>
+      <div class="nav-item"><span class="nav-icon">🏆</span>Leaderboard</div>
+      <div class="nav-item"><span class="nav-icon">💡</span>ROI Insights</div>
+      <div class="nav-item" onclick="navigate('dashboard')"><span class="nav-icon">← </span>Back to App</div>
+    </nav>
+    <div class="sidebar-footer"><div class="flex items-center gap-3"><div class="avatar" style="background:var(--cyan)">TC</div><div><div style="font-size:14px;font-weight:500">TechCorp Inc.</div><div class="text-xs text-muted">Enterprise Admin</div></div></div></div>
+  </div>
+  <div class="main-content">
+    <div class="topbar"><div class="flex items-center gap-3"><button class="menu-toggle" onclick="document.getElementById('sidebar-en').style.transform='translateX(0)'">☰</button><span style="font-weight:600">Enterprise Dashboard</span></div><div class="flex items-center gap-3"><button class="btn btn-outline btn-sm">📥 Export Report</button><button class="theme-btn" onclick="toggleTheme()">☀️</button></div></div>
+    <div class="page-content">
+      <div class="admin-grid">
+        <div class="widget"><div class="widget-label">Team Members</div><div class="widget-val">248</div><div class="widget-delta">↑ 12 added this month</div></div>
+        <div class="widget"><div class="widget-label">Avg. Completion</div><div class="widget-val">72%</div><div class="widget-delta">↑ 8% vs last quarter</div></div>
+        <div class="widget"><div class="widget-label">Total Hours</div><div class="widget-val">4,820h</div><div class="widget-delta">Across all employees</div></div>
+        <div class="widget"><div class="widget-label">Skills Upskilled</div><div class="widget-val">1,240</div><div class="widget-delta">Certifications earned</div></div>
+      </div>
+      <div class="org-chart">
+        <div style="font-weight:600;margin-bottom:16px;font-size:16px">Organization Overview</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px">
+          <div class="card-sm text-center"><div style="font-size:20px;margin-bottom:6px">💻</div><div style="font-weight:600;font-size:13px">Engineering</div><div class="text-xs text-muted">86 members</div><div class="progress-bar mt-2"><div class="progress-fill" style="width:78%"></div></div><div class="text-xs text-muted mt-1">78% avg</div></div>
+          <div class="card-sm text-center"><div style="font-size:20px;margin-bottom:6px">📊</div><div style="font-weight:600;font-size:13px">Data & ML</div><div class="text-xs text-muted">42 members</div><div class="progress-bar mt-2"><div class="progress-fill" style="width:85%"></div></div><div class="text-xs text-muted mt-1">85% avg</div></div>
+          <div class="card-sm text-center"><div style="font-size:20px;margin-bottom:6px">🎨</div><div style="font-weight:600;font-size:13px">Design</div><div class="text-xs text-muted">28 members</div><div class="progress-bar mt-2"><div class="progress-fill" style="width:62%"></div></div><div class="text-xs text-muted mt-1">62% avg</div></div>
+          <div class="card-sm text-center"><div style="font-size:20px;margin-bottom:6px">📱</div><div style="font-weight:600;font-size:13px">Product</div><div class="text-xs text-muted">34 members</div><div class="progress-bar mt-2"><div class="progress-fill" style="width:71%"></div></div><div class="text-xs text-muted mt-1">71% avg</div></div>
+          <div class="card-sm text-center"><div style="font-size:20px;margin-bottom:6px">🔐</div><div style="font-weight:600;font-size:13px">Security</div><div class="text-xs text-muted">18 members</div><div class="progress-bar mt-2"><div class="progress-fill" style="width:90%"></div></div><div class="text-xs text-muted mt-1">90% avg</div></div>
+          <div class="card-sm text-center"><div style="font-size:20px;margin-bottom:6px">☁️</div><div style="font-weight:600;font-size:13px">DevOps</div><div class="text-xs text-muted">22 members</div><div class="progress-bar mt-2"><div class="progress-fill" style="width:68%"></div></div><div class="text-xs text-muted mt-1">68% avg</div></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+        <div class="chart-card">
+          <div class="chart-title">Team Learning Activity</div>
+          <div class="chart-sub">Hours per department this week</div>
+          <div style="position:relative;height:220px"><canvas id="enterpriseChart" role="img" aria-label="Enterprise team activity chart">Team data</canvas></div>
+        </div>
+        <div class="card">
+          <div style="font-weight:600;margin-bottom:16px">💡 Learning ROI</div>
+          <div class="ai-insight" style="margin:0 0 12px">
+            <div style="font-size:24px">📈</div>
+            <div><p class="text-sm text-muted">Based on skill growth data, your engineering team has a projected <strong style="color:var(--green)">$2.4M productivity gain</strong> this quarter from upskilling in React and TypeScript.</p></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="card-sm text-center"><div style="font-size:24px;font-weight:700;color:var(--green)">$2.4M</div><div class="text-xs text-muted">Productivity gain</div></div>
+            <div class="card-sm text-center"><div style="font-size:24px;font-weight:700;color:var(--accent)">340%</div><div class="text-xs text-muted">ROI this quarter</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== 404 ==================== -->
+<div class="page" id="page-404">
+<div class="page-404">
+  <div class="big-404">404</div>
+  <h2 style="font-family:var(--font-head);font-size:28px;font-weight:800;margin-bottom:12px;position:relative;z-index:1">Page not found</h2>
+  <p class="text-muted text-sm mb-8" style="position:relative;z-index:1">Looks like you wandered off the learning path. Let's get you back on track!</p>
+  <div class="flex gap-3 justify-center" style="position:relative;z-index:1">
+    <button class="btn btn-grad btn-lg" onclick="navigate('dashboard')">🏠 Go to Dashboard</button>
+    <button class="btn btn-outline btn-lg" onclick="navigate('landing')">← Back to Home</button>
+  </div>
+</div>
+</div>
+
+<script>
+// ===== ROUTING =====
+const pages = ['landing','login','signup','forgot','onboarding','dashboard','learning-path','chat','analytics','assessments','community','profile','pricing','notifications','admin','enterprise','404'];
+let currentPage = 'landing';
+
+function navigate(page) {
+  if (!pages.includes(page)) { navigate('404'); return; }
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const el = document.getElementById('page-' + page);
+  if (el) {
+    el.classList.add('active');
+    window.scrollTo(0,0);
+    currentPage = page;
+    // init charts when needed
+    if (page === 'dashboard' && !window.weeklyChartDone) initDashboardCharts();
+    if (page === 'analytics' && !window.analyticsChartsDone) initAnalyticsCharts();
+    if (page === 'admin' && !window.adminChartsDone) initAdminCharts();
+    if (page === 'enterprise' && !window.enterpriseChartDone) initEnterpriseChart();
+    if (page === 'analytics') buildHeatmap();
+  } else {
+    navigate('404');
+  }
+}
+
+// ===== THEME =====
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.querySelectorAll('.theme-btn').forEach(b => b.textContent = isDark ? '🌙' : '☀️');
+}
+
+// ===== TOAST =====
+function showToast(type, title, msg) {
+  const icons = { success:'✅', error:'❌', info:'ℹ️', warning:'⚠️' };
+  const toast = document.getElementById('toast');
+  const el = document.createElement('div');
+  el.className = 'toast-item';
+  el.innerHTML = `<span class="toast-icon">${icons[type]||'ℹ️'}</span><div><div style="font-weight:600;font-size:13px">${title}</div>${msg ? `<div style="font-size:12px;color:var(--text2);margin-top:2px">${msg}</div>` : ''}</div>`;
+  toast.appendChild(el);
+  setTimeout(() => { el.style.opacity='0'; el.style.transform='translateX(60px)'; el.style.transition='all .3s ease'; setTimeout(() => el.remove(), 300); }, 3500);
+}
+
+// ===== PASSWORD TOGGLE =====
+function togglePw(id, btn) {
+  const inp = document.getElementById(id);
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.textContent = inp.type === 'password' ? '👁️' : '🙈';
+}
+
+// ===== FAQ =====
+function toggleFaq(el) {
+  const ans = el.nextElementSibling;
+  const icon = el.querySelector('span:last-child');
+  ans.classList.toggle('open');
+  icon.textContent = ans.classList.contains('open') ? '−' : '+';
+}
+
+// ===== SIDEBAR =====
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebar-overlay').classList.add('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('show');
+}
+
+// ===== ONBOARDING =====
+let obStep = 0;
+const obSteps = 5;
+const obMessages = ['Analyzing your goals...','Building your personalized path...','Selecting best resources...','Optimizing your schedule...','Finalizing your roadmap...'];
+
+function obNext() {
+  if (obStep < obSteps - 1) {
+    obStep++;
+    document.getElementById('ob-step-' + (obStep - 1)).style.display = 'none';
+    document.getElementById('ob-step-' + obStep).style.display = '';
+    document.getElementById('ob-back').style.visibility = 'visible';
+    document.getElementById('ob-counter').textContent = `Step ${obStep + 1} of ${obSteps}`;
+    updateObProgress();
+    if (obStep === obSteps - 1) document.getElementById('ob-next').textContent = 'Generate My Path ✨';
+  } else {
+    // Start AI loading
+    document.getElementById('ob-card').style.display = 'none';
+    document.getElementById('ob-loading').style.display = 'block';
+    let pct = 0, msgIdx = 0;
+    const bar = document.getElementById('ob-bar');
+    const txt = document.getElementById('ob-loading-text');
+    const iv = setInterval(() => {
+      pct += 4;
+      bar.style.width = Math.min(pct, 100) + '%';
+      if (pct % 20 === 0 && msgIdx < obMessages.length - 1) {
+        msgIdx++;
+        txt.textContent = obMessages[msgIdx];
+      }
+      if (pct >= 100) {
+        clearInterval(iv);
+        setTimeout(() => { navigate('dashboard'); showToast('success','🎉 Your path is ready!','Personalized roadmap generated by AI'); }, 600);
+      }
+    }, 60);
+  }
+}
+function obBack() {
+  if (obStep > 0) {
+    document.getElementById('ob-step-' + obStep).style.display = 'none';
+    obStep--;
+    document.getElementById('ob-step-' + obStep).style.display = '';
+    document.getElementById('ob-counter').textContent = `Step ${obStep + 1} of ${obSteps}`;
+    document.getElementById('ob-back').style.visibility = obStep === 0 ? 'hidden' : 'visible';
+    document.getElementById('ob-next').textContent = obStep === obSteps - 1 ? 'Generate My Path ✨' : 'Next →';
+    updateObProgress();
+  }
+}
+function updateObProgress() {
+  document.querySelectorAll('#ob-progress .ob-step').forEach((el, i) => {
+    el.className = 'ob-step' + (i < obStep ? ' done' : i === obStep ? ' active' : '');
+  });
+}
+function selectOpt(el) { el.classList.toggle('sel'); }
+
+// ===== MODULE TOGGLE =====
+function toggleModule(header) {
+  const body = header.nextElementSibling;
+  if (body && body.classList.contains('module-body')) body.classList.toggle('open');
+}
+
+// ===== TABS =====
+function switchTab(el, tabId) {
+  el.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  ['tab-account','tab-learning','tab-notifs','tab-security'].forEach(id => {
+    const t = document.getElementById(id);
+    if (t) t.style.display = id === tabId ? '' : 'none';
+  });
+}
+
+// ===== CHAT =====
+const aiResponses = [
+  "That's a great question! Let me break it down step by step... React's reconciliation algorithm compares the virtual DOM tree to determine the minimal number of changes needed. This is why keys matter so much in lists! 🎯",
+  "I can see you're making great progress! 🚀 Here's what I recommend based on your current level: focus on understanding **closures** and **prototype chains** first — they'll make everything else click.",
+  "Excellent thinking! Here's a code example that might help:\n```js\nconst [state, dispatch] = useReducer(reducer, initialState);\n```\nUseReducer is perfect when your state logic involves multiple sub-values. 💡",
+  "Based on your learning path, you're about **3 weeks ahead** of the average learner on this track. Keep up the amazing momentum! Your next milestone is React Performance Optimization. 🏆"
+];
+let aiIdx = 0;
+
+function sendChatMsg() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  addChatMsg('user', msg);
+  input.value = '';
+  input.style.height = 'auto';
+  // Typing indicator
+  const msgs = document.getElementById('chat-messages');
+  const typing = document.createElement('div');
+  typing.className = 'msg ai';
+  typing.id = 'typing';
+  typing.innerHTML = `<div class="ai-avatar">🤖</div><div class="msg-bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
+  msgs.appendChild(typing);
+  msgs.scrollTop = msgs.scrollHeight;
+  setTimeout(() => {
+    typing.remove();
+    addChatMsg('ai', aiResponses[aiIdx % aiResponses.length]);
+    aiIdx++;
+  }, 1400 + Math.random() * 600);
+}
+
+function addChatMsg(role, text) {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  const time = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  if (role === 'user') {
+    div.innerHTML = `<div class="avatar">AC</div><div><div class="msg-bubble">${text}</div><div class="text-xs text-muted mt-2" style="text-align:right">${time}</div></div>`;
+  } else {
+    div.innerHTML = `<div class="ai-avatar">🤖</div><div><div class="msg-bubble md"><p>${text}</p></div><div class="text-xs text-muted mt-2">${time}</div></div>`;
+  }
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function sendMsg(text) { document.getElementById('chat-input').value = text; sendChatMsg(); }
+
+function chatKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMsg(); }
+}
+
+function startNewChat() {
+  document.getElementById('chat-messages').innerHTML = `<div class="msg ai"><div class="ai-avatar">🤖</div><div><div class="msg-bubble md"><p>Hi Alex! Starting a new conversation. What would you like to explore? 😊</p></div></div></div>`;
+  showToast('info','New chat started','Fresh conversation ready ✨');
+}
+
+// ===== QUIZ =====
+function selectQuiz(el, correct) {
+  document.querySelectorAll('.quiz-option').forEach(o => { o.onclick = null; o.style.cursor = 'default'; });
+  el.classList.add(correct ? 'correct' : 'wrong');
+  if (!correct) document.querySelectorAll('.quiz-option')[1].classList.add('correct');
+  setTimeout(() => showToast(correct ? 'success' : 'info', correct ? 'Correct! +150 XP ⚡' : 'Not quite!', correct ? 'Great understanding of state updates 🎯' : 'The answer is B — always use functional updates for state based on prev state.'), 300);
+}
+
+// ===== PRICING =====
+function updatePricing() {
+  const yearly = document.getElementById('billing-toggle').classList.contains('on');
+  document.getElementById('price-pro').textContent = yearly ? '$11' : '$19';
+  document.getElementById('period-pro').textContent = yearly ? '/month, billed yearly' : '/month';
+}
+
+// ===== QUIZ TIMER =====
+let timerVal = 60;
+function startTimer() {
+  const el = document.getElementById('quiz-timer');
+  if (!el) return;
+  setInterval(() => {
+    timerVal = Math.max(0, timerVal - 1);
+    if (el) el.textContent = timerVal;
+    if (timerVal <= 10 && el) el.style.color = 'var(--red)';
+  }, 1000);
+}
+
+// ===== CHARTS =====
+function getChartColors() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  return { grid: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', text: isDark ? '#a8a8c0' : '#6a6a88' };
+}
+
+function initDashboardCharts() {
+  window.weeklyChartDone = true;
+  const { grid, text } = getChartColors();
+  new Chart(document.getElementById('weeklyChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      datasets: [{ label: 'Hours', data: [1.5, 2.2, 1.8, 3.1, 2.5, 1.2, 1.9], backgroundColor: ['rgba(124,109,250,0.7)','rgba(124,109,250,0.9)','rgba(124,109,250,0.7)','rgba(124,109,250,1)','rgba(124,109,250,0.8)','rgba(6,182,212,0.6)','rgba(6,182,212,0.7)'], borderRadius: 6, borderSkipped: false }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: grid }, ticks: { color: text, font: { size: 12 } } }, y: { grid: { color: grid }, ticks: { color: text, font: { size: 12 } } } } }
+  });
+}
+
+function initAnalyticsCharts() {
+  window.analyticsChartsDone = true;
+  const { grid, text } = getChartColors();
+  new Chart(document.getElementById('analyticsWeekly'), {
+    type: 'line',
+    data: {
+      labels: ['W1','W2','W3','W4','W5','W6','W7','W8'],
+      datasets: [{ label: 'Hours', data: [4, 6, 5, 8, 7, 9, 11, 10], borderColor: '#7c6dfa', backgroundColor: 'rgba(124,109,250,0.1)', tension: 0.4, fill: true, borderWidth: 2, pointBackgroundColor: '#7c6dfa' }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: grid }, ticks: { color: text, font: { size: 11 } } }, y: { grid: { color: grid }, ticks: { color: text, font: { size: 11 } } } } }
+  });
+  new Chart(document.getElementById('skillRadar'), {
+    type: 'radar',
+    data: {
+      labels: ['HTML/CSS', 'JavaScript', 'React', 'TypeScript', 'Node.js', 'Git'],
+      datasets: [{ label: 'Proficiency', data: [92, 85, 68, 45, 52, 88], backgroundColor: 'rgba(124,109,250,0.15)', borderColor: '#7c6dfa', pointBackgroundColor: '#7c6dfa', borderWidth: 2 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { r: { grid: { color: grid }, angleLines: { color: grid }, ticks: { color: text, font: { size: 10 }, backdropColor: 'transparent' } } } }
+  });
+  new Chart(document.getElementById('completionChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Frontend', 'JavaScript', 'CSS', 'Tools', 'React', 'Remaining'],
+      datasets: [{ data: [100, 85, 95, 70, 60, 40], backgroundColor: ['#7c6dfa','#06b6d4','#22c55e','#f59e0b','#ec4899','rgba(255,255,255,0.1)'], borderWidth: 0, hoverOffset: 4 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+  });
+}
+
+function initAdminCharts() {
+  window.adminChartsDone = true;
+  const { grid, text } = getChartColors();
+  new Chart(document.getElementById('adminRevenue'), {
+    type: 'line',
+    data: {
+      labels: ['Aug','Sep','Oct','Nov','Dec','Jan','Feb'],
+      datasets: [{ label: 'MRR ($K)', data: [62, 68, 74, 80, 86, 90, 94], borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.1)', tension: 0.4, fill: true, borderWidth: 2, pointBackgroundColor: '#22c55e' }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: grid }, ticks: { color: text, font: { size: 11 } } }, y: { grid: { color: grid }, ticks: { color: text, font: { size: 11 }, callback: v => '$' + v + 'K' } } } }
+  });
+  new Chart(document.getElementById('adminUsers'), {
+    type: 'bar',
+    data: {
+      labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+      datasets: [{ label: 'Signups', data: [340, 420, 380, 510, 460, 280, 320], backgroundColor: 'rgba(124,109,250,0.8)', borderRadius: 4, borderSkipped: false }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: grid }, ticks: { color: text, font: { size: 11 } } }, y: { grid: { color: grid }, ticks: { color: text, font: { size: 11 } } } } }
+  });
+}
+
+function initEnterpriseChart() {
+  window.enterpriseChartDone = true;
+  const { grid, text } = getChartColors();
+  new Chart(document.getElementById('enterpriseChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Engineering','Data & ML','Design','Product','Security','DevOps'],
+      datasets: [{ label: 'Hours this week', data: [420, 240, 160, 195, 118, 140], backgroundColor: ['rgba(124,109,250,0.8)','rgba(6,182,212,0.8)','rgba(236,72,153,0.8)','rgba(245,158,11,0.8)','rgba(239,68,68,0.8)','rgba(34,197,94,0.8)'], borderRadius: 4, borderSkipped: false }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { grid: { color: grid }, ticks: { color: text, font: { size: 11 } } }, y: { grid: { color: grid }, ticks: { color: text, font: { size: 11 } } } } }
+  });
+}
+
+function buildHeatmap() {
+  const grid = document.getElementById('heatmap-grid');
+  if (!grid || grid.children.length > 0) return;
+  const intensities = ['rgba(124,109,250,0.15)','rgba(124,109,250,0.35)','rgba(124,109,250,0.6)','rgba(124,109,250,0.9)'];
+  for (let i = 0; i < 84; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'heat-cell';
+    const r = Math.random();
+    cell.style.background = r < 0.25 ? 'var(--surf3)' : intensities[Math.floor(r * 4)];
+    cell.title = `Day ${i+1}: ${Math.round(r * 3)}h`;
+    grid.appendChild(cell);
+  }
+}
+
+// ===== INIT =====
+window.addEventListener('DOMContentLoaded', () => {
+  startTimer();
+  // Keyboard shortcut demo
+  document.addEventListener('keydown', e => {
+    if (e.metaKey || e.ctrlKey) {
+      if (e.key === 'k') { e.preventDefault(); showToast('info','Command Palette','Cmd+K — search anything (demo)'); }
+    }
+  });
+});
+</script>
+</body>
+</html>
